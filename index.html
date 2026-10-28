@@ -14,6 +14,8 @@
   --accent: #1C4FD8;
   --accent-ink: #FFFFFF;
   --go: #E8683D;
+  --sel: #B98300;
+  --sel-ink: #FFFFFF;
   --warn: #B45309;
   --warn-bg: #FEF3C7;
   --ok: #047857;
@@ -24,10 +26,12 @@
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #0E1217; --surface: #171C23; --ink: #E7ECF2; --muted: #96A1AF; --rule: #2A323C;
   --accent: #7AA2FF; --accent-ink: #0E1217; --warn: #FBBF24; --warn-bg: #3A2C0B; --ok: #34D399; --bad: #F87171;
+  --sel: #F5BE0B; --sel-ink: #17130A;
   color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #0E1217; --surface: #171C23; --ink: #E7ECF2; --muted: #96A1AF; --rule: #2A323C;
   --accent: #7AA2FF; --accent-ink: #0E1217; --warn: #FBBF24; --warn-bg: #3A2C0B; --ok: #34D399; --bad: #F87171;
+  --sel: #F5BE0B; --sel-ink: #17130A;
   color-scheme: dark }
 
 * { box-sizing: border-box }
@@ -139,6 +143,32 @@ table.links td.arrow { color: var(--muted); padding: 4px 2px; }
 table.tt.hd th { color: var(--bad); border-right-color: var(--bad); }
 table.status tr.sp td { height: 14px; padding: 0; border-bottom: 0; }
 .sbox { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+.rbar { padding: 12px 12px 18px; display: flex; flex-direction: column; gap: 14px; }
+.rbar-top { display: flex; align-items: center; gap: 4px; }
+.ico { flex: none; width: 30px; height: 34px; padding: 2px; border: 0; background: transparent; color: var(--ink); border-radius: 8px; display: grid; place-items: center; }
+.ico svg { width: 25px; height: 25px; }
+.ico.swap { color: var(--sel); width: 26px; }
+.ico:active { background: var(--bg); }
+.rpill { flex: 1 1 0; min-width: 0; display: flex; align-items: stretch; border: 1.5px solid var(--sel); border-radius: 6px; overflow: hidden; }
+.rpill .lab { flex: none; background: var(--sel); color: var(--sel-ink); font-size: 10.5px; font-weight: 700; padding: 0 4px; display: grid; place-items: center; letter-spacing: .04em; }
+.rpill .nm { flex: 1; min-width: 0; text-align: center; color: var(--sel); font-weight: 700; font-size: 15px; padding: 4px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rmap { padding: 0 14px; }
+.rm-inner { position: relative; height: 74px; }
+.rm-arrow { position: absolute; top: 6px; height: 3px; background: var(--sel); border-radius: 2px; }
+.rm-arrow .tail { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 50%; background: var(--sel); transform: translate(-50%, -50%); }
+.rm-arrow .head { position: absolute; top: 50%; width: 9px; height: 9px; border-top: 3px solid var(--sel); border-right: 3px solid var(--sel); }
+.rm-arrow.east .tail { left: 0; }
+.rm-arrow.east .head { right: -1px; transform: translateY(-50%) rotate(45deg); }
+.rm-arrow.west .tail { left: 100%; }
+.rm-arrow.west .head { left: -1px; transform: translateY(-50%) rotate(-135deg); }
+.rm-line { position: absolute; left: 0; right: 0; top: 30px; border-top: 2px dotted var(--muted); }
+.rm-node { position: absolute; top: 31px; width: 11px; height: 11px; border-radius: 50%; background: var(--ink); transform: translate(-50%, -50%); }
+.rm-node.thru { background: var(--surface); border: 2px solid var(--ink); width: 13px; height: 13px; }
+.rm-node.sel { background: var(--sel); }
+.rm-bub { position: absolute; top: 46px; padding: 2px 9px; border: 1.5px solid var(--ink); border-radius: 6px; background: var(--surface); color: var(--ink); font-size: 13.5px; font-weight: 700; white-space: nowrap; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+.rm-bub i { position: absolute; top: -7px; width: 10px; height: 10px; background: var(--surface); border-left: 1.5px solid var(--ink); border-top: 1.5px solid var(--ink); transform: translateX(-50%) rotate(45deg); }
+.rm-bub.drag { border-color: var(--sel); color: var(--sel); cursor: grabbing; }
+.rm-bub.drag i { border-color: var(--sel); }
 .hero { display: grid; grid-template-columns: auto 1fr auto; align-items: end; gap: 12px; padding: 22px 16px 18px; background: radial-gradient(120% 140% at 50% 0%, color-mix(in srgb, var(--accent) 14%, var(--surface)), var(--surface)); }
 .hero-end { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .hero-end.r { text-align: right; align-items: flex-end; }
@@ -184,10 +214,6 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
   <div class="wrap">
     <div class="brand">
       <h1>通学ダイヤ<small id="brand-route"></small></h1>
-      <div class="seg" role="group" aria-label="方向">
-        <button id="dir-out" type="button">行き</button>
-        <button id="dir-in" type="button">帰り</button>
-      </div>
     </div>
     <nav class="tabs" aria-label="画面">
       <a href="#search" data-view="search">検索</a>
@@ -205,10 +231,15 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
     <!-- 検索 -->
     <section id="v-search" data-v="search" hidden>
       <div class="sbox">
-        <div class="hero">
-          <div class="hero-end"><span class="hero-lab dep">出発</span><span id="q-from" class="hero-name"></span></div>
-          <div id="q-track" class="hero-track" aria-hidden="true"></div>
-          <div class="hero-end r"><span class="hero-lab arr">到着</span><span id="q-to" class="hero-name"></span></div>
+        <div class="rbar">
+          <div class="rbar-top">
+            <button id="q-home" class="ico" type="button" aria-label="家へ帰る向きにする" title="帰り"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5M5.5 9.5V20h4.5v-5.5h4V20h4.5V9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg></button>
+            <div class="rpill"><span class="lab">出発</span><span id="q-from" class="nm"></span></div>
+            <button id="q-swap" class="ico swap" type="button" aria-label="出発と到着を入れ替える"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h15M15 4.5l4 4M20 15.5H5M9 19.5l-4-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <div class="rpill r"><span id="q-to" class="nm"></span><span class="lab">到着</span></div>
+            <button id="q-school" class="ico" type="button" aria-label="大学へ行く向きにする" title="行き"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 20.5h19M4 20.5V12h16v8.5M8 12V9l4-3.2L16 9v3M12 5.8V2.8h2.6M10.3 20.5v-3.6h3.4v3.6M6 14.5h1.6M6 17h1.6M16.4 14.5H18M16.4 17H18M11 10h2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg></button>
+          </div>
+          <div id="q-map" class="rmap"></div>
         </div>
         <div class="mtabs" role="group" aria-label="検索方法">
           <button id="mode-dep" type="button">出発</button>
@@ -252,7 +283,7 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
     <!-- 時刻表 -->
     <section id="v-timetable" data-v="timetable" hidden>
       <div class="panel">
-        <h2>区間を選ぶ</h2>
+        <div class="row" style="justify-content:space-between"><h2>区間を選ぶ</h2><div class="seg dir-seg" role="group" aria-label="方向"><button type="button" data-dir="out">行き</button><button type="button" data-dir="in">帰り</button></div></div>
         <div id="tt-legs" class="legs"></div>
         <div class="row">
           <div class="seg" role="group" aria-label="ダイヤ">
@@ -272,7 +303,7 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
 
     <!-- 乗換・乗車位置 -->
     <section id="v-transfer" data-v="transfer" hidden>
-      <div class="panel"><h2>乗換時間と乗車位置</h2><div id="route-ed" class="route-ed"></div></div>
+      <div class="panel"><div class="row" style="justify-content:space-between"><h2>乗換時間と乗車位置</h2><div class="seg dir-seg" role="group" aria-label="方向"><button type="button" data-dir="out">行き</button><button type="button" data-dir="in">帰り</button></div></div><div id="route-ed" class="route-ed"></div></div>
     </section>
 
     <!-- データ -->
@@ -471,10 +502,12 @@ function runFrom({ legs, from }, xf, start) {
   for (let i = 1; i < chain.length; i++) if (!chain[i].through) chain[i].slack = chain[i].trip.d - (chain[i - 1].trip.a + xf[i - 1]);
   return chain;
 }
-function search(dir, day, mode, qSec, hurry) {
-  const built = buildLegs(dir, day), legs = built.legs;
+// a〜b は使う区間の範囲（dir の向きで数えた区間番号、b は含まない）
+function search(dir, day, mode, qSec, hurry, a = 0, b = legCount()) {
+  const all = buildLegs(dir, day);
+  const built = { legs: all.legs.slice(a, b), from: all.from.slice(a, b - 1) }, legs = built.legs;
   if (legs.some(l => !l.length)) return { error: "時刻表が入っていない区間があります。" };
-  const xf = transferSecs(dir, hurry);
+  const xf = transferSecs(dir, hurry).slice(a, b - 1);
   let cands;
   if (mode === "dep") cands = legs[0].filter(t => t.d >= qSec).slice(0, 14);
   else cands = legs[0].filter(t => t.d <= qSec && t.d >= qSec - 4 * 3600);
@@ -509,8 +542,108 @@ function posText(dir, i) {
   return `<span class="pos">乗車位置 ${main}${p.note ? `<span class="hint">${esc(p.note)}</span>` : ""}</span>`;
 }
 
+/* ===== 検索の出発駅・到着駅（路線図） ===== */
+// 駅の番号は常に行きの並び（左端が家側、右端が大学側）。from > to なら帰りの向き
+// 開いたときは 3〜16時なら行き（大学へ）、それ以外は帰り（家へ）
+function defaultSel() { const h = new Date().getHours(), n = baseRoute().stations.length; return h >= 3 && h < 16 ? { from: 0, to: n - 1, n } : { from: n - 1, to: 0, n }; }
+let qSel = defaultSel();
+function mapPos() {
+  // 点の間隔はふだんの所要時間に比例（短い区間もつまめるように最低幅をとる）
+  const r = baseRoute(), n = r.stations.length - 1;
+  const w = [...Array(n).keys()].map(i => {
+    const ts = legTrips("out", i, "wd"), v = ts.map(t => t.a - t.d).sort((x, y) => x - y);
+    return v.length ? v[v.length >> 1] : 600;
+  });
+  const tot = w.reduce((x, y) => x + y, 0) || 1, ww = w.map(x => Math.max(x, tot * .09)), t2 = ww.reduce((x, y) => x + y, 0);
+  const pos = [0]; ww.forEach(x => pos.push(pos[pos.length - 1] + x / t2));
+  return pos;
+}
+const canStop = i => { const r = baseRoute(); return i === 0 || i === r.stations.length - 1 || !(r.through || []).includes(r.stations[i]); };
+function renderMap() {
+  const st = baseRoute().stations, pos = mapPos(), pct = x => `${(x * 100).toFixed(3)}%`;
+  $("#q-map").innerHTML = `<div class="rm-inner">
+    <div class="rm-arrow"><i class="tail"></i><i class="head"></i></div>
+    <div class="rm-line"></div>
+    ${st.map((s, i) => `<span class="rm-node${canStop(i) ? "" : " thru"}" style="left:${pct(pos[i])}" title="${esc(s)}"></span>`).join("")}
+    <button type="button" class="rm-bub" data-end="from"><span></span><i></i></button>
+    <button type="button" class="rm-bub" data-end="to"><span></span><i></i></button>
+  </div>`;
+  updateMap();
+}
+// 要素は作り直さずに、選んだ駅に合わせて表示だけ更新する（ドラッグ中も呼ぶ）
+function updateMap() {
+  const st = baseRoute().stations, pos = mapPos(), { from, to } = qSel, pct = x => `${(x * 100).toFixed(3)}%`;
+  $("#q-from").textContent = st[from];
+  $("#q-to").textContent = st[to];
+  const inner = $("#q-map .rm-inner"); if (!inner) return;
+  const lo = Math.min(from, to), hi = Math.max(from, to), ar = inner.querySelector(".rm-arrow");
+  ar.className = `rm-arrow ${from < to ? "east" : "west"}`;
+  ar.style.left = pct(pos[lo]); ar.style.width = pct(pos[hi] - pos[lo]);
+  inner.querySelectorAll(".rm-node").forEach((n, i) => n.classList.toggle("sel", i === from || i === to));
+  for (const k of ["from", "to"]) {
+    const b = inner.querySelector(`.rm-bub[data-end="${k}"]`);
+    b.querySelector("span").textContent = st[qSel[k]];
+    b.setAttribute("aria-label", `${k === "from" ? "出発駅" : "到着駅"} ${st[qSel[k]]}（左右にドラッグで変更）`);
+  }
+  placeBubbles();
+}
+function placeBubbles() {
+  const inner = $("#q-map .rm-inner"); if (!inner) return;
+  const W = inner.clientWidth, pos = mapPos();
+  const bubs = ["from", "to"].map(k => ({ k, el: inner.querySelector(`.rm-bub[data-end="${k}"]`), x: pos[qSel[k]] * W }));
+  bubs.forEach(b => { b.w = b.el.offsetWidth; b.l = Math.max(0, Math.min(W - b.w, b.x - b.w / 2)); });
+  // 2つが重なるときは左右に押し分ける
+  const [L, Rr] = bubs[0].x <= bubs[1].x ? bubs : [bubs[1], bubs[0]];
+  const gap = 4;
+  if (L.l + L.w + gap > Rr.l) {
+    const mid = (L.x + Rr.x) / 2;
+    L.l = Math.max(0, Math.min(mid - L.w - gap / 2, W - L.w - Rr.w - gap));
+    Rr.l = Math.min(W - Rr.w, Math.max(L.l + L.w + gap, mid + gap / 2));
+  }
+  for (const b of bubs) {
+    b.el.style.left = `${b.l}px`;
+    b.el.querySelector("i").style.left = `${Math.max(6, Math.min(b.w - 6, b.x - b.l))}px`;
+  }
+}
+let mapDrag = null;
+$("#q-map").addEventListener("pointerdown", e => {
+  const b = e.target.closest(".rm-bub"); if (!b) return;
+  e.preventDefault();
+  mapDrag = { end: b.dataset.end, id: e.pointerId, moved: false };
+  b.setPointerCapture(e.pointerId); b.classList.add("drag");
+});
+$("#q-map").addEventListener("pointermove", e => {
+  if (!mapDrag || e.pointerId !== mapDrag.id) return;
+  const inner = $("#q-map .rm-inner"), rc = inner.getBoundingClientRect(), x = (e.clientX - rc.left) / rc.width;
+  const pos = mapPos(), other = qSel[mapDrag.end === "from" ? "to" : "from"], cur = qSel[mapDrag.end];
+  // 相手を追い越さず、最低1区間あける。止まれるのは乗換駅と両端だけ
+  let best = cur, bd = Infinity;
+  pos.forEach((p, i) => {
+    if (!canStop(i) || i === other || (cur < other) !== (i < other)) return;
+    const d = Math.abs(p - x); if (d < bd) { bd = d; best = i; }
+  });
+  if (best !== cur) { qSel[mapDrag.end] = best; mapDrag.moved = true; updateMap(); }
+});
+const endDrag = e => {
+  if (!mapDrag || e.pointerId !== mapDrag.id) return;
+  const moved = mapDrag.moved; mapDrag = null;
+  document.querySelectorAll("#q-map .rm-bub.drag").forEach(b => b.classList.remove("drag"));
+  if (moved) renderSearch();
+};
+$("#q-map").addEventListener("pointerup", endDrag);
+$("#q-map").addEventListener("pointercancel", endDrag);
+$("#q-home").onclick = () => { const n = baseRoute().stations.length; qSel = { from: n - 1, to: 0, n }; renderSearch(); };
+$("#q-school").onclick = () => { const n = baseRoute().stations.length; qSel = { from: 0, to: n - 1, n }; renderSearch(); };
+$("#q-swap").onclick = () => { qSel = { from: qSel.to, to: qSel.from, n: qSel.n }; renderSearch(); };
+addEventListener("resize", placeBubbles);
+
 function renderSearch() {
-  const dir = S.ui.dir, { stations, lines } = route(dir);
+  const N = baseRoute().stations.length;
+  if (qSel.n !== N || qSel.from === qSel.to) { qSel = defaultSel(); renderMap(); }
+  else renderMap();
+  const dir = qSel.from < qSel.to ? "out" : "in", { stations, lines } = route(dir);
+  // 検索に使う区間（dir の向きの番号）
+  const A = dir === "out" ? qSel.from : N - 1 - qSel.from, B = dir === "out" ? qSel.to : N - 1 - qSel.to;
   $("#mode-dep").setAttribute("aria-pressed", S.ui.mode === "dep");
   $("#mode-arr").setAttribute("aria-pressed", S.ui.mode === "arr");
   $("#q-day").value = S.ui.day;
@@ -521,13 +654,10 @@ function renderSearch() {
   $("#q-time").hidden = live; $("#q-live").hidden = !live;
   if (!live) $("#q-time").value = S.ui.qTime;
   const day = currentDay();
-  $("#q-from").textContent = stations[0];
-  $("#q-to").textContent = stations[stations.length - 1];
-  $("#q-track").innerHTML = lines.map((ln, i) => `<i class="seg" style="--c:${ln.color}"></i>${i < lines.length - 1 ? `<b class="node${route(dir).through.has(stations[i + 1]) ? " thru" : ""}" title="${esc(stations[i + 1])}"></b>` : ""}`).join("");
   const dt = ns.date, wk = "日月火水木金土"[dt.getDay()];
   $("#q-when-text").textContent = `${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()}(${wk}) ${live ? "現在時刻" : hm(qSec)} ${S.ui.mode === "dep" ? "出発" : "到着"}${S.ui.day === "auto" ? "" : `・${day === "wd" ? "平日" : "土休日"}`}`;
 
-  const r = search(dir, day, S.ui.mode, qSec, !S.ui.relax);
+  const r = search(dir, day, S.ui.mode, qSec, !S.ui.relax, A, B);
   const box = $("#results");
   if (r.error) { box.innerHTML = `<div class="panel empty">${r.error}<br><a href="#timetable">時刻表を取り込む</a></div>`; return; }
   if (!r.list.length) { box.innerHTML = `<div class="panel empty">条件に合う経路がありません。時刻を変えてみてください。</div>`; return; }
@@ -537,20 +667,20 @@ function renderSearch() {
     const cd = live && S.ui.mode === "dep" ? `<span class="cd num" data-leave="${first.d}"></span>` : "";
     let tl = "";
     chain.forEach((e, i) => {
-      const t = e.trip, ln = lines[i];
-      if (i === 0) tl += `<div class="stop"><div class="t num">${hm(t.d)}</div><div class="dot"></div><div><div class="name">${stations[0]}</div></div></div>`;
+      const t = e.trip, ln = lines[A + i];
+      if (i === 0) tl += `<div class="stop"><div class="t num">${hm(t.d)}</div><div class="dot"></div><div><div class="name">${stations[A]}</div></div></div>`;
       else {
         const prev = chain[i - 1].trip;
         const xfInfo = e.through
           ? `<div class="xf">直通・そのまま乗車</div>`
           : `<div class="xf">乗換 ${ms(t.d - prev.a)} ・ <span class="slack" style="color:${e.slack < 60 ? "var(--bad)" : e.slack < 180 ? "var(--warn)" : "var(--ok)"}">余裕 ${ms(e.slack)}</span></div>`;
-        tl += `<div class="stop"><div class="t num">${e.through ? hm(t.d) : `${hm(prev.a)}<small>${hm(t.d)}発</small>`}</div><div class="dot"></div><div><div class="name">${stations[i]}</div>${xfInfo}</div></div>`;
+        tl += `<div class="stop"><div class="t num">${e.through ? hm(t.d) : `${hm(prev.a)}<small>${hm(t.d)}発</small>`}</div><div class="dot"></div><div><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
       }
       tl += `<div class="ride" style="--c:${ln.color}"><div class="t"></div><div class="bar"><i></i></div><div class="body">
         <span class="line-chip" style="--c:${ln.color}"><i></i>${ln.name} ${esc(t.t)}${t.to ? ` ${esc(t.to)}行` : ""} <span class="hint num">${durJa(t.a - t.d)}</span></span>
-        ${e.through && i > 0 ? "" : posText(dir, i)}</div></div>`;
+        ${e.through && i > 0 ? "" : posText(dir, A + i)}</div></div>`;
     });
-    tl += `<div class="stop"><div class="t num">${hm(last.a)}</div><div class="dot"></div><div><div class="name">${stations[stations.length - 1]}</div></div></div>`;
+    tl += `<div class="stop"><div class="t num">${hm(last.a)}</div><div class="dot"></div><div><div class="name">${stations[B]}</div></div></div>`;
     const transfers = chain.slice(1).filter(e => !e.through).length;
     return `<details class="opt" ${idx === 0 ? "open" : ""}>
       <summary>
@@ -662,8 +792,7 @@ function render() {
   const view = S.ui.view;
   document.querySelectorAll("[data-v]").forEach(s => s.hidden = s.dataset.v !== view);
   document.querySelectorAll("nav.tabs a").forEach(a => a.dataset.view === view ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
-  $("#dir-out").setAttribute("aria-pressed", S.ui.dir === "out");
-  $("#dir-in").setAttribute("aria-pressed", S.ui.dir === "in");
+  document.querySelectorAll("[data-dir]").forEach(b => b.setAttribute("aria-pressed", b.dataset.dir === S.ui.dir));
   renderBanner(); hideTip();
   { const st = baseRoute().stations; $("#brand-route").textContent = `${st[0]} ⇄ ${st[st.length - 1]}`; }
   if (view === "search") renderSearch();
@@ -678,10 +807,9 @@ function fromHash() { const h = location.hash.slice(1); S.ui.view = VIEWS.includ
 window.addEventListener("hashchange", fromHash);
 
 /* ===== 操作 ===== */
-$("#dir-out").onclick = () => { S.ui.dir = "out"; save(); render(); };
-$("#dir-in").onclick = () => { S.ui.dir = "in"; save(); render(); };
+document.querySelectorAll("[data-dir]").forEach(b => b.onclick = () => { S.ui.dir = b.dataset.dir; save(); render(); });
 $("#mode-dep").onclick = () => { S.ui.mode = "dep"; save(); render(); };
-$("#mode-arr").onclick = () => { S.ui.mode = "arr"; if (!S.ui.qTime) S.ui.qTime = S.ui.dir === "out" ? "08:30" : "18:00"; save(); render(); };
+$("#mode-arr").onclick = () => { S.ui.mode = "arr"; if (!S.ui.qTime) S.ui.qTime = qSel.from < qSel.to ? "08:30" : "18:00"; save(); render(); };
 $("#q-time").onchange = e => { S.ui.qTime = e.target.value || null; save(); render(); };
 $("#q-now").onclick = () => { S.ui.qTime = null; S.ui.mode = "dep"; liveSnap = nowService(); save(); render(); };
 $("#q-live").onclick = () => { S.ui.qTime = hhmm(nowService().sec); save(); render(); $("#q-time").focus(); };
