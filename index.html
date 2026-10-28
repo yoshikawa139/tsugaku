@@ -147,7 +147,7 @@ table.tt.hd th { color: var(--bad); border-right-color: var(--bad); }
 table.status tr.sp td { height: 14px; padding: 0; border-bottom: 0; }
 .sbox { background: var(--surface); border: 0; border-radius: 16.5px; overflow: hidden; display: flex; flex-direction: column; }
 .rbar { background: var(--rb-bg); }
-.rbar svg { display: block; width: 100%; height: auto; font-family: var(--font-body); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+.rbar svg { display: block; width: 100%; height: auto; touch-action: pan-y; font-family: var(--font-body); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 .rb-bg { fill: var(--rb-bg); }
 .rb-hit { fill: transparent; }
 .rb-btn { cursor: pointer; outline: none; }
@@ -165,9 +165,9 @@ circle.rb-icon { stroke-width: 1.4; }
 .rb-dots { stroke: var(--rb-dot); stroke-width: 3; stroke-dasharray: 3 3; }
 .rb-node { fill: var(--rb-ink); }
 .rb-node.thru { fill: var(--rb-bg); stroke: var(--rb-ink); stroke-width: 3; }
-.rb-bub { cursor: grab; touch-action: none; outline: none; }
+.rb-bub { cursor: grab; outline: none; }
 .rb-bub.drag { cursor: grabbing; }
-.rb-bub-hit { fill: transparent; stroke: transparent; stroke-width: 22; stroke-linejoin: round; }
+.rb-bub-hit { fill: transparent; }
 .rb-bub-box { fill: var(--rb-bg); stroke: var(--rb-ink); stroke-width: 2; stroke-linejoin: round; }
 .rb-bub.drag .rb-bub-box { stroke: var(--sel); }
 .rb-bub-text { font-size: 19px; font-weight: 700; fill: var(--rb-ink); text-anchor: middle; dominant-baseline: central; }
@@ -592,11 +592,11 @@ function renderMap() {
       <circle class="rb-icon" cx="716.9" cy="124.4" r="2.2"/>
       <path class="rb-icon" d="M700,130.6 V135 M703.1,130.6 V135 M706.9,130.6 V135 M700,137.5 V141.9 M703.1,137.5 V141.9 M706.9,137.5 V141.9 M726.9,130.6 V135 M730,130.6 V135 M733.75,130.6 V135 M726.9,137.5 V141.9 M730,137.5 V141.9 M733.75,137.5 V141.9"/>
     </g>
-    <g id="q-arrow"><line class="rb-arrow-line" y1="${RB.arrowY}" y2="${RB.arrowY}"/><circle class="rb-arrow-dot" cy="${RB.arrowY + 1}" r="7.5"/><path class="rb-arrow-head"/></g>
+    <g id="q-arrow"><line class="rb-arrow-line" y1="${RB.arrowY}" y2="${RB.arrowY}"/><circle class="rb-arrow-dot" cy="${RB.arrowY}" r="7.5"/><path class="rb-arrow-head"/></g>
     <line class="rb-dots" x1="${RB.x0}" x2="${RB.x1}" y1="${RB.nodeY}" y2="${RB.nodeY}"/>
     ${nodes}
-    <g class="rb-bub" data-side="l" role="slider" tabindex="0"><path class="rb-bub-hit"/><path class="rb-bub-box"/><text class="rb-bub-text" y="${RB.bubY + RB.bubH / 2 + .5}"></text></g>
-    <g class="rb-bub" data-side="r" role="slider" tabindex="0"><path class="rb-bub-hit"/><path class="rb-bub-box"/><text class="rb-bub-text" y="${RB.bubY + RB.bubH / 2 + .5}"></text></g>`;
+    <g class="rb-bub" data-side="l" role="slider" tabindex="0"><rect class="rb-bub-hit"/><path class="rb-bub-box"/><text class="rb-bub-text" y="${RB.bubY + RB.bubH / 2 + .5}"></text></g>
+    <g class="rb-bub" data-side="r" role="slider" tabindex="0"><rect class="rb-bub-hit"/><path class="rb-bub-box"/><text class="rb-bub-text" y="${RB.bubY + RB.bubH / 2 + .5}"></text></g>`;
   updateMap();
 }
 // 文字が枠に収まらないときだけ横に詰める
@@ -606,27 +606,34 @@ function fitText(el, max) {
   if (w > max) { el.setAttribute("textLength", max); el.setAttribute("lengthAdjust", "spacingAndGlyphs"); return max; }
   return w;
 }
-function updateMap() {
+// drag: ドラッグ中の吹き出しは指に合わせて動かす（{ side, x }）。指を離すと近い駅に吸い付く
+function updateMap(drag) {
   const svg = $("#q-svg"); if (!svg.firstElementChild) return;
   const st = baseRoute().stations, from = selFrom(), to = selTo();
   svg.querySelector("#q-from").textContent = st[from]; fitText(svg.querySelector("#q-from"), 140);
   svg.querySelector("#q-to").textContent = st[to]; fitText(svg.querySelector("#q-to"), 150);
-  // 矢印：出発駅の点から到着駅の点まで（矢じりの先は点の中心から3.5先）
-  const xa = nodeX(from), xb = nodeX(to), sg = xb > xa ? 1 : -1, tip = xb + 5.5 * sg, base = tip - 10 * sg, y = RB.arrowY;
+  // 矢印：出発駅の点（丸の中心を軸が通る）から到着駅の点まで
+  const xa = nodeX(from), xb = nodeX(to), sg = xb > xa ? 1 : -1, tip = xb + 5.5 * sg, base = tip - 14 * sg, y = RB.arrowY;
   svg.querySelector(".rb-arrow-line").setAttribute("x1", xa); svg.querySelector(".rb-arrow-line").setAttribute("x2", base + sg);
-  svg.querySelector(".rb-arrow-dot").setAttribute("cx", xa + .5 * sg);
-  svg.querySelector(".rb-arrow-head").setAttribute("d", `M${tip},${y} L${base},${y - 5.5} L${base},${y + 5.5} Z`);
-  // 吹き出し：左は点の右下に、右は点の左下に伸びる
+  svg.querySelector(".rb-arrow-dot").setAttribute("cx", xa);
+  svg.querySelector(".rb-arrow-head").setAttribute("d", `M${tip},${y} L${base},${y - 7.5} L${base},${y + 7.5} Z`);
+  // 吹き出し：点の真下に置き、突起は真ん中から真上へ。カードの端に当たるときだけ端で止め、突起を点の側へ寄せる
+  const L = RB.x0 - 3.5, Rt = RB.x1 + 4.5;
   for (const side of ["l", "r"]) {
-    const g = svg.querySelector(`.rb-bub[data-side="${side}"]`), i = qSel[side], n = nodeX(i), t = g.querySelector("text");
+    const g = svg.querySelector(`.rb-bub[data-side="${side}"]`), i = qSel[side], t = g.querySelector("text");
+    const n = drag && drag.side === side ? drag.x : nodeX(i);
     t.textContent = st[i];
     const w = fitText(t, 200) + RB.bubPad, y0 = RB.bubY, y1 = RB.bubY + RB.bubH, rr = 6;
-    let x0, x1, tail;
-    if (side === "l") { x0 = n - 3.5; x1 = x0 + w; tail = [[n + 6, y0], [n + 6, 216.5], [n + 22, y0]]; }
-    else { x1 = n + 4.5; x0 = x1 - w; tail = [[n - 40, y0], [n - 7, 213], [n - 13.5, y0]]; }
-    const box = `M${tail[2][0]},${y0} H${x1 - rr} A${rr},${rr} 0 0 1 ${x1},${y0 + rr} V${y1 - rr} A${rr},${rr} 0 0 1 ${x1 - rr},${y1} H${x0 + rr} A${rr},${rr} 0 0 1 ${x0},${y1 - rr} V${y0 + rr} A${rr},${rr} 0 0 1 ${x0 + rr},${y0} H${tail[0][0]} L${tail[1][0]},${tail[1][1]} Z`;
+    const x0 = Math.max(L, Math.min(Rt - w, n - w / 2)), x1 = x0 + w;
+    let tail;
+    if (x0 === L && n < x0 + w / 2) tail = [[x0 + 9.5, y0], [x0 + 9.5, 216.5], [x0 + 25.5, y0]];          // 左端（見本の形）
+    else if (x1 === Rt && n > x0 + w / 2) tail = [[x1 - 44.5, y0], [x1 - 11.5, 213], [x1 - 18, y0]];     // 右端（見本の形）
+    else tail = [[n - 7, y0], [n, 216.5], [n + 7, y0]];
+    const [a, b, c] = tail[0][0] < tail[2][0] ? tail : [tail[2], tail[1], tail[0]];
+    const box = `M${c[0]},${y0} H${x1 - rr} A${rr},${rr} 0 0 1 ${x1},${y0 + rr} V${y1 - rr} A${rr},${rr} 0 0 1 ${x1 - rr},${y1} H${x0 + rr} A${rr},${rr} 0 0 1 ${x0},${y1 - rr} V${y0 + rr} A${rr},${rr} 0 0 1 ${x0 + rr},${y0} H${a[0]} L${b[0]},${b[1]} Z`;
     g.querySelector(".rb-bub-box").setAttribute("d", box);
-    g.querySelector(".rb-bub-hit").setAttribute("d", box);
+    const hit = g.querySelector(".rb-bub-hit");
+    hit.setAttribute("x", x0 - 14); hit.setAttribute("width", w + 28); hit.setAttribute("y", 190); hit.setAttribute("height", 81);
     t.setAttribute("x", (x0 + x1) / 2);
     g.setAttribute("aria-label", `${side === "l" ? "左" : "右"}の駅 ${st[i]}（左右にドラッグ、または矢印キーで変更）`);
     g.setAttribute("aria-valuetext", st[i]);
@@ -642,21 +649,25 @@ let mapDrag = null;
 $("#q-svg").addEventListener("pointerdown", e => {
   const g = e.target.closest(".rb-bub"); if (!g) return;
   e.preventDefault();
-  mapDrag = { side: g.dataset.side, id: e.pointerId, moved: false };
-  g.setPointerCapture(e.pointerId); g.classList.add("drag");
+  const side = g.dataset.side, n = baseRoute().stations.length, idx = [...Array(n).keys()].filter(i => onSide(side, i, n));
+  mapDrag = { side, id: e.pointerId, moved: false, start: qSel[side], dx: nodeX(qSel[side]) - svgX(e), lo: nodeX(idx[0]), hi: nodeX(idx[idx.length - 1]) };
+  try { $("#q-svg").setPointerCapture(e.pointerId); } catch (_) {}
+  g.classList.add("drag");
 });
 $("#q-svg").addEventListener("pointermove", e => {
   if (!mapDrag || e.pointerId !== mapDrag.id) return;
-  const x = svgX(e), n = baseRoute().stations.length;
-  let best = qSel[mapDrag.side], bd = Infinity;
-  for (let i = 0; i < n; i++) if (onSide(mapDrag.side, i, n)) { const d = Math.abs(nodeX(i) - x); if (d < bd) { bd = d; best = i; } }
-  if (moveBubble(mapDrag.side, best)) mapDrag.moved = true;
+  e.preventDefault();
+  const d = mapDrag, x = Math.max(d.lo, Math.min(d.hi, svgX(e) + d.dx)), n = baseRoute().stations.length;
+  let best = qSel[d.side], bd = Infinity;
+  for (let i = 0; i < n; i++) if (onSide(d.side, i, n)) { const dd = Math.abs(nodeX(i) - x); if (dd < bd) { bd = dd; best = i; } }
+  qSel[d.side] = best;
+  updateMap({ side: d.side, x });
 });
 const endDrag = e => {
   if (!mapDrag || e.pointerId !== mapDrag.id) return;
-  const moved = mapDrag.moved; mapDrag = null;
+  const moved = qSel[mapDrag.side] !== mapDrag.start; mapDrag = null;
   document.querySelectorAll("#q-svg .rb-bub.drag").forEach(g => g.classList.remove("drag"));
-  if (moved) renderSearch();
+  if (moved) renderSearch(); else updateMap();
 };
 $("#q-svg").addEventListener("pointerup", endDrag);
 $("#q-svg").addEventListener("pointercancel", endDrag);
