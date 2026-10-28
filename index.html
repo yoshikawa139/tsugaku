@@ -179,14 +179,16 @@ circle.rb-icon { stroke-width: 1.4; }
 .pin { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 2px solid currentColor; display: grid; place-items: center; font-size: 11px; font-weight: 700; }
 .pin.dep { color: var(--ok); }
 .pin.arr { color: var(--bad); }
-.mtabs { display: grid; grid-template-columns: 1fr 1fr; background: var(--bg); border-top: 1px solid var(--rule); }
-.mtabs button { border: 0; background: var(--bg); color: var(--muted); font-size: 17px; padding: 12px 0; font-weight: 500; }
-.mtabs button + button { border-left: 1px solid var(--rule); }
-.mtabs button[aria-pressed="true"] { background: var(--surface); color: var(--go); font-weight: 700; }
 .sbox-body { display: flex; flex-direction: column; gap: 10px; padding: 14px; }
 .when { display: flex; align-items: center; justify-content: center; gap: 10px; position: relative; background: var(--bg); border: 1.5px solid var(--rule); border-radius: 999px; padding: 12px 40px; font-size: 16px; }
 .when .chev { position: absolute; right: 18px; color: var(--muted); }
-.optbtn { background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: 12px; font-size: 15px; color: var(--muted); }
+.gowrap { position: relative; }
+.gowrap .gobtn { width: 100%; }
+.gear { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border: 0; border-radius: 6px; background: transparent; color: #fff; display: grid; place-items: center; padding: 0; }
+.gear svg { width: 24px; height: 24px; }
+.gear:active { background: rgba(0,0,0,.15); }
+.mseg { align-self: flex-start; }
+.mseg button { padding: 7px 22px; font-size: 14px; }
 .gobtn { background: var(--go); color: #fff; border: 0; border-radius: 6px; padding: 13px; font-size: 20px; font-weight: 700; letter-spacing: .1em; }
 .dlg { border: 1px solid var(--rule); border-radius: 14px; background: var(--surface); color: var(--ink); padding: 0; width: min(92vw, 380px); }
 .dlg::backdrop { background: rgba(0,0,0,.55); }
@@ -223,21 +225,23 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
     <section id="v-search" data-v="search" hidden>
       <div class="sbox">
         <div class="rbar">
-          <svg id="q-svg" viewBox="84 93 670 178" role="group" aria-label="出発駅と到着駅"></svg>
-        </div>
-        <div class="mtabs" role="group" aria-label="検索方法">
-          <button id="mode-dep" type="button">出発</button>
-          <button id="mode-arr" type="button">到着</button>
+          <svg id="q-svg" viewBox="84 93 670 178" role="group" aria-label="始点と終点"></svg>
         </div>
         <div class="sbox-body">
           <button id="q-when" class="when" type="button"><span id="q-when-text" class="num"></span><span class="chev" aria-hidden="true">⌄</span></button>
-          <button id="q-opt" class="optbtn" type="button">検索設定</button>
-          <button id="q-go" class="gobtn" type="button">検索</button>
+          <div class="gowrap">
+            <button id="q-go" class="gobtn" type="button">検索</button>
+            <button id="q-opt" class="gear" type="button" aria-label="検索設定"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.3 2.8h3.4l.5 2.6 1.6.9 2.5-.9 1.7 2.9-2 1.8v1.8l2 1.8-1.7 2.9-2.5-.9-1.6.9-.5 2.6h-3.4l-.5-2.6-1.6-.9-2.5.9-1.7-2.9 2-1.8v-1.8l-2-1.8 1.7-2.9 2.5.9 1.6-.9z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>
+          </div>
         </div>
       </div>
       <dialog id="dlg-when" class="dlg">
         <form method="dialog" class="dlg-in">
           <h2>日時</h2>
+          <div class="seg mseg" role="group" aria-label="検索方法">
+            <button id="mode-dep" type="button">出発</button>
+            <button id="mode-arr" type="button">到着</button>
+          </div>
           <div class="row">
             <input id="q-time" class="inp num" type="time" aria-label="時刻">
             <button id="q-live" class="inp live-chip" type="button" aria-label="時刻を指定する">現在時刻</button>
@@ -572,7 +576,7 @@ function renderMap() {
     <g class="rb-pill">
       <rect class="rb-pill-box" x="171" y="114" width="211" height="34" rx="5"/>
       <path class="rb-pill-lab" d="M176,113 H228 V149 H176 A6,6 0 0 1 170,143 V119 A6,6 0 0 1 176,113 Z"/>
-      <text class="rb-lab" x="199" y="132.5">出発</text>
+      <text class="rb-lab" x="199" y="132.5">始点</text>
       <text id="q-from" class="rb-name" x="304.5" y="132"></text>
     </g>
     <g id="q-swap" class="rb-btn" role="button" tabindex="0" aria-label="出発と到着を入れ替える">
@@ -582,14 +586,13 @@ function renderMap() {
     <g class="rb-pill">
       <rect class="rb-pill-box" x="445" y="114" width="221" height="34" rx="5"/>
       <path class="rb-pill-lab" d="M609,113 H661 A6,6 0 0 1 667,119 V143 A6,6 0 0 1 661,149 H609 Z"/>
-      <text class="rb-lab" x="639.5" y="132.5">到着</text>
+      <text class="rb-lab" x="639.5" y="132.5">終点</text>
       <text id="q-to" class="rb-name" x="527.5" y="132"></text>
     </g>
     <g id="q-school" class="rb-btn" role="button" tabindex="0" aria-label="大学へ行く向きにする（行き）">
       <rect class="rb-hit" x="688" y="102" width="60" height="52"/>
-      <path class="rb-icon" d="M695,146.25 H739.4 V126.4 H724.4 M709.4,126.4 H695 V146.25 M709.4,126.4 V121.9 M724.4,126.4 V121.9 M712.5,130.9 H721.3 M712.5,146.25 V139 A4.4,4.4 0 0 1 721.3,139 V146.25"/>
-      <path class="rb-icon" d="M705.6,120 L716.9,109.75 L728.1,120 L724.4,121.9 L716.9,114.4 L709.4,121.9 Z"/>
-      <circle class="rb-icon" cx="716.9" cy="124.4" r="2.2"/>
+      <path class="rb-icon" d="M695,146.25 H739.4 V126.4 H724.4 V110.5 H709.4 V126.4 H695 Z M712.5,130.9 H721.3 M712.5,146.25 V139 A4.4,4.4 0 0 1 721.3,139 V146.25"/>
+      <circle class="rb-icon" cx="716.9" cy="118.2" r="3"/>
       <path class="rb-icon" d="M700,130.6 V135 M703.1,130.6 V135 M706.9,130.6 V135 M700,137.5 V141.9 M703.1,137.5 V141.9 M706.9,137.5 V141.9 M726.9,130.6 V135 M730,130.6 V135 M733.75,130.6 V135 M726.9,137.5 V141.9 M730,137.5 V141.9 M733.75,137.5 V141.9"/>
     </g>
     <g id="q-arrow"><line class="rb-arrow-line" y1="${RB.arrowY}" y2="${RB.arrowY}"/><circle class="rb-arrow-dot" cy="${RB.arrowY}" r="7.5"/><path class="rb-arrow-head"/></g>
