@@ -13,8 +13,9 @@
   --accent: #1C4FD8;
   --accent-ink: #FFFFFF;
   --go: #E8683D;
-  --sel: #B98300;
+  --sel: #C98F00;
   --sel-ink: #FFFFFF;
+  --rb-bg: #E6EBF2; --rb-ink: #2B3445; --rb-icon: #3B4352; --rb-dot: #6B7484; --rb-lab-ink: #FFFFFF;
   --warn: #B45309;
   --warn-bg: #FEF3C7;
   --ok: #047857;
@@ -25,12 +26,14 @@
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #0E1217; --surface: #171C23; --ink: #E7ECF2; --muted: #96A1AF; --rule: #2A323C;
   --accent: #7AA2FF; --accent-ink: #0E1217; --warn: #FBBF24; --warn-bg: #3A2C0B; --ok: #34D399; --bad: #F87171;
-  --sel: #F5BE0B; --sel-ink: #17130A;
+  --sel: #FFC000; --sel-ink: #212B3D;
+  --rb-bg: #212B3D; --rb-ink: #E8E8E8; --rb-icon: #D0D1D4; --rb-dot: #D1D1D1; --rb-lab-ink: #212B3D;
   color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #0E1217; --surface: #171C23; --ink: #E7ECF2; --muted: #96A1AF; --rule: #2A323C;
   --accent: #7AA2FF; --accent-ink: #0E1217; --warn: #FBBF24; --warn-bg: #3A2C0B; --ok: #34D399; --bad: #F87171;
-  --sel: #F5BE0B; --sel-ink: #17130A;
+  --sel: #FFC000; --sel-ink: #212B3D;
+  --rb-bg: #212B3D; --rb-ink: #E8E8E8; --rb-icon: #D0D1D4; --rb-dot: #D1D1D1; --rb-lab-ink: #212B3D;
   color-scheme: dark }
 
 * { box-sizing: border-box }
@@ -141,45 +144,33 @@ table.links td.arrow { color: var(--muted); padding: 4px 2px; }
 #tt-grid .tt-t.on { box-shadow: 0 0 0 1.5px var(--ink); }
 table.tt.hd th { color: var(--bad); border-right-color: var(--bad); }
 table.status tr.sp td { height: 14px; padding: 0; border-bottom: 0; }
-.sbox { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
-.rbar { padding: 12px 12px 18px; display: flex; flex-direction: column; gap: 14px; }
-.rbar-top { display: flex; align-items: center; gap: 4px; }
-.ico { flex: none; width: 30px; height: 34px; padding: 2px; border: 0; background: transparent; color: var(--ink); border-radius: 8px; display: grid; place-items: center; }
-.ico svg { width: 25px; height: 25px; }
-.ico.swap { color: var(--sel); width: 26px; }
-.ico:active { background: var(--bg); }
-.rpill { flex: 1 1 0; min-width: 0; display: flex; align-items: stretch; border: 1.5px solid var(--sel); border-radius: 6px; overflow: hidden; }
-.rpill .lab { flex: none; background: var(--sel); color: var(--sel-ink); font-size: 10.5px; font-weight: 700; padding: 0 4px; display: grid; place-items: center; letter-spacing: .04em; }
-.rpill .nm { flex: 1; min-width: 0; text-align: center; color: var(--sel); font-weight: 700; font-size: 15px; padding: 4px 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rmap { padding: 0 14px; }
-.rm-inner { position: relative; height: 74px; }
-.rm-arrow { position: absolute; top: 6px; height: 3px; background: var(--sel); border-radius: 2px; }
-.rm-arrow .tail { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 50%; background: var(--sel); transform: translate(-50%, -50%); }
-.rm-arrow .head { position: absolute; top: 50%; width: 9px; height: 9px; border-top: 3px solid var(--sel); border-right: 3px solid var(--sel); }
-.rm-arrow.east .tail { left: 0; }
-.rm-arrow.east .head { right: -1px; transform: translateY(-50%) rotate(45deg); }
-.rm-arrow.west .tail { left: 100%; }
-.rm-arrow.west .head { left: -1px; transform: translateY(-50%) rotate(-135deg); }
-.rm-line { position: absolute; left: 0; right: 0; top: 30px; border-top: 2px dotted var(--muted); }
-.rm-node { position: absolute; top: 31px; width: 11px; height: 11px; border-radius: 50%; background: var(--ink); transform: translate(-50%, -50%); }
-.rm-node.thru { background: var(--surface); border: 2px solid var(--ink); width: 13px; height: 13px; }
-.rm-node.sel { background: var(--sel); }
-.rm-bub { position: absolute; top: 46px; padding: 2px 9px; border: 1.5px solid var(--ink); border-radius: 6px; background: var(--surface); color: var(--ink); font-size: 13.5px; font-weight: 700; white-space: nowrap; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
-.rm-bub i { position: absolute; top: -7px; width: 10px; height: 10px; background: var(--surface); border-left: 1.5px solid var(--ink); border-top: 1.5px solid var(--ink); transform: translateX(-50%) rotate(45deg); }
-.rm-bub.drag { border-color: var(--sel); color: var(--sel); cursor: grabbing; }
-.rm-bub.drag i { border-color: var(--sel); }
-.hero { display: grid; grid-template-columns: auto 1fr auto; align-items: end; gap: 12px; padding: 22px 16px 18px; background: radial-gradient(120% 140% at 50% 0%, color-mix(in srgb, var(--accent) 14%, var(--surface)), var(--surface)); }
-.hero-end { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.hero-end.r { text-align: right; align-items: flex-end; }
-.hero-lab { font-size: 11px; font-weight: 700; letter-spacing: .12em; }
-.hero-lab.dep { color: var(--ok); }
-.hero-lab.arr { color: var(--bad); }
-.hero-name { font-size: 22px; font-weight: 700; letter-spacing: .03em; line-height: 1.2; overflow-wrap: anywhere; }
-.hero-track { display: flex; align-items: center; height: 14px; margin-bottom: 7px; position: relative; min-width: 60px; }
-.hero-track::before, .hero-track::after { content: ""; flex: none; width: 12px; height: 12px; border-radius: 50%; border: 3px solid var(--ink); background: var(--surface); }
-.hero-track .seg { flex: 1; height: 4px; background: var(--c); border-radius: 2px; }
-.hero-track .node { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--ink); margin: 0 1px; }
-.hero-track .node.thru { background: transparent; border: 1.5px dotted var(--muted); }
+.sbox { background: var(--surface); border: 0; border-radius: 16.5px; overflow: hidden; display: flex; flex-direction: column; }
+.rbar { background: var(--rb-bg); }
+.rbar svg { display: block; width: 100%; height: auto; font-family: var(--font-body); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+.rb-bg { fill: var(--rb-bg); }
+.rb-hit { fill: transparent; }
+.rb-btn { cursor: pointer; outline: none; }
+.rb-btn:focus-visible .rb-hit, .rb-bub:focus-visible .rb-bub-hit { stroke: var(--accent); stroke-width: 2; }
+.rb-icon { fill: none; stroke: var(--rb-icon); stroke-width: 1.5; stroke-linejoin: miter; }
+circle.rb-icon { stroke-width: 1.4; }
+.rb-btn:active .rb-icon { stroke: var(--sel); }
+.rb-pill-box { fill: none; stroke: var(--sel); stroke-width: 2; }
+.rb-pill-lab { fill: var(--sel); }
+.rb-lab { font-size: 19px; font-weight: 700; fill: var(--rb-lab-ink); text-anchor: middle; dominant-baseline: central; }
+.rb-name { font-size: 25px; font-weight: 700; fill: var(--sel); text-anchor: middle; dominant-baseline: central; }
+.rb-swap { fill: none; stroke: var(--sel); stroke-width: 2.25; }
+.rb-arrow-line { stroke: var(--sel); stroke-width: 3; }
+.rb-arrow-dot, .rb-arrow-head { fill: var(--sel); }
+.rb-dots { stroke: var(--rb-dot); stroke-width: 3; stroke-dasharray: 3 3; }
+.rb-node { fill: var(--rb-ink); }
+.rb-node.thru { fill: var(--rb-bg); stroke: var(--rb-ink); stroke-width: 3; }
+.rb-bub { cursor: grab; touch-action: none; outline: none; }
+.rb-bub.drag { cursor: grabbing; }
+.rb-bub-hit { fill: transparent; stroke: transparent; stroke-width: 22; stroke-linejoin: round; }
+.rb-bub-box { fill: var(--rb-bg); stroke: var(--rb-ink); stroke-width: 2; stroke-linejoin: round; }
+.rb-bub.drag .rb-bub-box { stroke: var(--sel); }
+.rb-bub-text { font-size: 19px; font-weight: 700; fill: var(--rb-ink); text-anchor: middle; dominant-baseline: central; }
+.rb-bub.drag .rb-bub-text { fill: var(--sel); }
 .live-chip { min-width: 7.5em; text-align: left; cursor: pointer; background: var(--bg); border: 1px solid var(--rule); border-radius: 8px; padding: 7px 9px; font-size: 15px; color: var(--ink); }
 .sbox-st { display: flex; flex-direction: column; gap: 8px; padding: 14px; }
 .pill { display: flex; align-items: center; gap: 12px; background: var(--bg); border: 1.5px solid var(--rule); border-radius: 999px; padding: 7px 18px 7px 8px; }
@@ -230,14 +221,7 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
     <section id="v-search" data-v="search" hidden>
       <div class="sbox">
         <div class="rbar">
-          <div class="rbar-top">
-            <button id="q-home" class="ico" type="button" aria-label="家へ帰る向きにする" title="帰り"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5M5.5 9.5V20h4.5v-5.5h4V20h4.5V9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg></button>
-            <div class="rpill"><span class="lab">出発</span><span id="q-from" class="nm"></span></div>
-            <button id="q-swap" class="ico swap" type="button" aria-label="出発と到着を入れ替える"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h15M15 4.5l4 4M20 15.5H5M9 19.5l-4-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-            <div class="rpill r"><span id="q-to" class="nm"></span><span class="lab">到着</span></div>
-            <button id="q-school" class="ico" type="button" aria-label="大学へ行く向きにする" title="行き"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 20.5h19M4 20.5V12h16v8.5M8 12V9l4-3.2L16 9v3M12 5.8V2.8h2.6M10.3 20.5v-3.6h3.4v3.6M6 14.5h1.6M6 17h1.6M16.4 14.5H18M16.4 17H18M11 10h2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg></button>
-          </div>
-          <div id="q-map" class="rmap"></div>
+          <svg id="q-svg" viewBox="84 93 670 178" role="group" aria-label="出発駅と到着駅"></svg>
         </div>
         <div class="mtabs" role="group" aria-label="検索方法">
           <button id="mode-dep" type="button">出発</button>
@@ -541,107 +525,166 @@ function posText(dir, i) {
 }
 
 /* ===== 検索の出発駅・到着駅（路線図） ===== */
-// 駅の番号は常に行きの並び（左端が家側、右端が大学側）。from > to なら帰りの向き
-// 開いたときは 3〜16時なら行き（大学へ）、それ以外は帰り（家へ）
-function defaultSel() { const h = new Date().getHours(), n = baseRoute().stations.length; return h >= 3 && h < 16 ? { from: 0, to: n - 1, n } : { from: n - 1, to: 0, n }; }
+// 見本の図の寸法（幅670×高さ178、左上が 84,93）をそのまま SVG の座標に使う。
+// 駅の番号は常に行きの並び（左端＝家側、右端＝大学側）。
+// 左の吹き出しは前半の駅、右の吹き出しは後半の駅だけを動く。dir が out なら左→右、in なら右→左。
+const RB = { x0: 118.5, x1: 716.5, nodeY: 203, arrowY: 178, bubY: 224, bubH: 30, bubPad: 26, bubFont: 19 };
+const MAP_POS_6 = [0, .1664, .3027, .7358, .9231, 1]; // 見本どおりの駅の間隔
+function defaultSel() {
+  // 開いたときは 3〜16時なら行き（大学マーク）、それ以外は帰り（家マーク）
+  const h = new Date().getHours(), n = baseRoute().stations.length;
+  return { l: 0, r: n - 1, dir: h >= 3 && h < 16 ? "out" : "in", n };
+}
 let qSel = defaultSel();
+const selFrom = () => qSel.dir === "out" ? qSel.l : qSel.r;
+const selTo = () => qSel.dir === "out" ? qSel.r : qSel.l;
+const onSide = (side, i, n) => side === "l" ? i < n / 2 : i >= n / 2;
 function mapPos() {
-  // 点の間隔はふだんの所要時間に比例（短い区間もつまめるように最低幅をとる）
   const r = baseRoute(), n = r.stations.length - 1;
+  if (n + 1 === MAP_POS_6.length) return MAP_POS_6;
+  // それ以外の経路では、点の間隔をふだんの所要時間に比例させる（短い区間にも最低幅）
   const w = [...Array(n).keys()].map(i => {
-    const ts = legTrips("out", i, "wd"), v = ts.map(t => t.a - t.d).sort((x, y) => x - y);
+    const v = legTrips("out", i, "wd").map(t => t.a - t.d).sort((x, y) => x - y);
     return v.length ? v[v.length >> 1] : 600;
   });
   const tot = w.reduce((x, y) => x + y, 0) || 1, ww = w.map(x => Math.max(x, tot * .09)), t2 = ww.reduce((x, y) => x + y, 0);
   const pos = [0]; ww.forEach(x => pos.push(pos[pos.length - 1] + x / t2));
   return pos;
 }
-const canStop = i => { const r = baseRoute(); return i === 0 || i === r.stations.length - 1 || !(r.through || []).includes(r.stations[i]); };
+const nodeX = i => RB.x0 + mapPos()[i] * (RB.x1 - RB.x0);
 function renderMap() {
-  const st = baseRoute().stations, pos = mapPos(), pct = x => `${(x * 100).toFixed(3)}%`;
-  $("#q-map").innerHTML = `<div class="rm-inner">
-    <div class="rm-arrow"><i class="tail"></i><i class="head"></i></div>
-    <div class="rm-line"></div>
-    ${st.map((s, i) => `<span class="rm-node${canStop(i) ? "" : " thru"}" style="left:${pct(pos[i])}" title="${esc(s)}"></span>`).join("")}
-    <button type="button" class="rm-bub" data-end="from"><span></span><i></i></button>
-    <button type="button" class="rm-bub" data-end="to"><span></span><i></i></button>
-  </div>`;
+  const r = baseRoute(), st = r.stations, thru = new Set(r.through || []);
+  const nodes = st.map((s, i) => {
+    const x = nodeX(i).toFixed(2);
+    return i > 0 && i < st.length - 1 && thru.has(s)
+      ? `<circle class="rb-node thru" cx="${x}" cy="${RB.nodeY}" r="7"/>`
+      : `<circle class="rb-node" cx="${x}" cy="${RB.nodeY}" r="7.5"/>`;
+  }).join("");
+  $("#q-svg").innerHTML = `
+    <rect class="rb-bg" x="84" y="93" width="670" height="178"/>
+    <g id="q-home" class="rb-btn" role="button" tabindex="0" aria-label="家へ帰る向きにする（帰り）">
+      <rect class="rb-hit" x="94" y="102" width="54" height="52"/>
+      <path class="rb-icon" d="M105,134 L121,118.7 L137.25,134 L133.5,136.3 L121,123.2 L108.75,136.3 Z"/>
+      <path class="rb-icon" d="M109.5,135.8 V146.2 H118.6 V136.8 H123.6 V146.2 H132.8 V135.8"/>
+    </g>
+    <g class="rb-pill">
+      <rect class="rb-pill-box" x="171" y="114" width="211" height="34" rx="5"/>
+      <path class="rb-pill-lab" d="M176,113 H228 V149 H176 A6,6 0 0 1 170,143 V119 A6,6 0 0 1 176,113 Z"/>
+      <text class="rb-lab" x="199" y="132.5">出発</text>
+      <text id="q-from" class="rb-name" x="304.5" y="132"></text>
+    </g>
+    <g id="q-swap" class="rb-btn" role="button" tabindex="0" aria-label="出発と到着を入れ替える">
+      <rect class="rb-hit" x="386" y="104" width="56" height="52"/>
+      <path class="rb-swap" d="M434,124 H394.5 M402.5,116.5 L394.5,124 L402.5,131.5 M393,139 H432.5 M424.5,131.5 L432.5,139 L424.5,146.5"/>
+    </g>
+    <g class="rb-pill">
+      <rect class="rb-pill-box" x="445" y="114" width="221" height="34" rx="5"/>
+      <path class="rb-pill-lab" d="M609,113 H661 A6,6 0 0 1 667,119 V143 A6,6 0 0 1 661,149 H609 Z"/>
+      <text class="rb-lab" x="639.5" y="132.5">到着</text>
+      <text id="q-to" class="rb-name" x="527.5" y="132"></text>
+    </g>
+    <g id="q-school" class="rb-btn" role="button" tabindex="0" aria-label="大学へ行く向きにする（行き）">
+      <rect class="rb-hit" x="688" y="102" width="60" height="52"/>
+      <path class="rb-icon" d="M695,146.25 H739.4 V126.4 H724.4 M709.4,126.4 H695 V146.25 M709.4,126.4 V121.9 M724.4,126.4 V121.9 M712.5,130.9 H721.3 M712.5,146.25 V139 A4.4,4.4 0 0 1 721.3,139 V146.25"/>
+      <path class="rb-icon" d="M705.6,120 L716.9,109.75 L728.1,120 L724.4,121.9 L716.9,114.4 L709.4,121.9 Z"/>
+      <circle class="rb-icon" cx="716.9" cy="124.4" r="2.2"/>
+      <path class="rb-icon" d="M700,130.6 V135 M703.1,130.6 V135 M706.9,130.6 V135 M700,137.5 V141.9 M703.1,137.5 V141.9 M706.9,137.5 V141.9 M726.9,130.6 V135 M730,130.6 V135 M733.75,130.6 V135 M726.9,137.5 V141.9 M730,137.5 V141.9 M733.75,137.5 V141.9"/>
+    </g>
+    <g id="q-arrow"><line class="rb-arrow-line" y1="${RB.arrowY}" y2="${RB.arrowY}"/><circle class="rb-arrow-dot" cy="${RB.arrowY + 1}" r="7.5"/><path class="rb-arrow-head"/></g>
+    <line class="rb-dots" x1="${RB.x0}" x2="${RB.x1}" y1="${RB.nodeY}" y2="${RB.nodeY}"/>
+    ${nodes}
+    <g class="rb-bub" data-side="l" role="slider" tabindex="0"><path class="rb-bub-hit"/><path class="rb-bub-box"/><text class="rb-bub-text" y="${RB.bubY + RB.bubH / 2 + .5}"></text></g>
+    <g class="rb-bub" data-side="r" role="slider" tabindex="0"><path class="rb-bub-hit"/><path class="rb-bub-box"/><text class="rb-bub-text" y="${RB.bubY + RB.bubH / 2 + .5}"></text></g>`;
   updateMap();
 }
-// 要素は作り直さずに、選んだ駅に合わせて表示だけ更新する（ドラッグ中も呼ぶ）
-function updateMap() {
-  const st = baseRoute().stations, pos = mapPos(), { from, to } = qSel, pct = x => `${(x * 100).toFixed(3)}%`;
-  $("#q-from").textContent = st[from];
-  $("#q-to").textContent = st[to];
-  const inner = $("#q-map .rm-inner"); if (!inner) return;
-  const lo = Math.min(from, to), hi = Math.max(from, to), ar = inner.querySelector(".rm-arrow");
-  ar.className = `rm-arrow ${from < to ? "east" : "west"}`;
-  ar.style.left = pct(pos[lo]); ar.style.width = pct(pos[hi] - pos[lo]);
-  inner.querySelectorAll(".rm-node").forEach((n, i) => n.classList.toggle("sel", i === from || i === to));
-  for (const k of ["from", "to"]) {
-    const b = inner.querySelector(`.rm-bub[data-end="${k}"]`);
-    b.querySelector("span").textContent = st[qSel[k]];
-    b.setAttribute("aria-label", `${k === "from" ? "出発駅" : "到着駅"} ${st[qSel[k]]}（左右にドラッグで変更）`);
-  }
-  placeBubbles();
+// 文字が枠に収まらないときだけ横に詰める
+function fitText(el, max) {
+  el.removeAttribute("textLength"); el.removeAttribute("lengthAdjust");
+  const w = el.getComputedTextLength();
+  if (w > max) { el.setAttribute("textLength", max); el.setAttribute("lengthAdjust", "spacingAndGlyphs"); return max; }
+  return w;
 }
-function placeBubbles() {
-  const inner = $("#q-map .rm-inner"); if (!inner) return;
-  const W = inner.clientWidth, pos = mapPos();
-  const bubs = ["from", "to"].map(k => ({ k, el: inner.querySelector(`.rm-bub[data-end="${k}"]`), x: pos[qSel[k]] * W }));
-  bubs.forEach(b => { b.w = b.el.offsetWidth; b.l = Math.max(0, Math.min(W - b.w, b.x - b.w / 2)); });
-  // 2つが重なるときは左右に押し分ける
-  const [L, Rr] = bubs[0].x <= bubs[1].x ? bubs : [bubs[1], bubs[0]];
-  const gap = 4;
-  if (L.l + L.w + gap > Rr.l) {
-    const mid = (L.x + Rr.x) / 2;
-    L.l = Math.max(0, Math.min(mid - L.w - gap / 2, W - L.w - Rr.w - gap));
-    Rr.l = Math.min(W - Rr.w, Math.max(L.l + L.w + gap, mid + gap / 2));
+function updateMap() {
+  const svg = $("#q-svg"); if (!svg.firstElementChild) return;
+  const st = baseRoute().stations, from = selFrom(), to = selTo();
+  svg.querySelector("#q-from").textContent = st[from]; fitText(svg.querySelector("#q-from"), 140);
+  svg.querySelector("#q-to").textContent = st[to]; fitText(svg.querySelector("#q-to"), 150);
+  // 矢印：出発駅の点から到着駅の点まで（矢じりの先は点の中心から3.5先）
+  const xa = nodeX(from), xb = nodeX(to), sg = xb > xa ? 1 : -1, tip = xb + 5.5 * sg, base = tip - 10 * sg, y = RB.arrowY;
+  svg.querySelector(".rb-arrow-line").setAttribute("x1", xa); svg.querySelector(".rb-arrow-line").setAttribute("x2", base + sg);
+  svg.querySelector(".rb-arrow-dot").setAttribute("cx", xa + .5 * sg);
+  svg.querySelector(".rb-arrow-head").setAttribute("d", `M${tip},${y} L${base},${y - 5.5} L${base},${y + 5.5} Z`);
+  // 吹き出し：左は点の右下に、右は点の左下に伸びる
+  for (const side of ["l", "r"]) {
+    const g = svg.querySelector(`.rb-bub[data-side="${side}"]`), i = qSel[side], n = nodeX(i), t = g.querySelector("text");
+    t.textContent = st[i];
+    const w = fitText(t, 200) + RB.bubPad, y0 = RB.bubY, y1 = RB.bubY + RB.bubH, rr = 6;
+    let x0, x1, tail;
+    if (side === "l") { x0 = n - 3.5; x1 = x0 + w; tail = [[n + 6, y0], [n + 6, 216.5], [n + 22, y0]]; }
+    else { x1 = n + 4.5; x0 = x1 - w; tail = [[n - 40, y0], [n - 7, 213], [n - 13.5, y0]]; }
+    const box = `M${tail[2][0]},${y0} H${x1 - rr} A${rr},${rr} 0 0 1 ${x1},${y0 + rr} V${y1 - rr} A${rr},${rr} 0 0 1 ${x1 - rr},${y1} H${x0 + rr} A${rr},${rr} 0 0 1 ${x0},${y1 - rr} V${y0 + rr} A${rr},${rr} 0 0 1 ${x0 + rr},${y0} H${tail[0][0]} L${tail[1][0]},${tail[1][1]} Z`;
+    g.querySelector(".rb-bub-box").setAttribute("d", box);
+    g.querySelector(".rb-bub-hit").setAttribute("d", box);
+    t.setAttribute("x", (x0 + x1) / 2);
+    g.setAttribute("aria-label", `${side === "l" ? "左" : "右"}の駅 ${st[i]}（左右にドラッグ、または矢印キーで変更）`);
+    g.setAttribute("aria-valuetext", st[i]);
   }
-  for (const b of bubs) {
-    b.el.style.left = `${b.l}px`;
-    b.el.querySelector("i").style.left = `${Math.max(6, Math.min(b.w - 6, b.x - b.l))}px`;
-  }
+}
+function svgX(e) { const svg = $("#q-svg"), pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()).x; }
+function moveBubble(side, idx) {
+  const n = baseRoute().stations.length;
+  if (idx < 0 || idx >= n || !onSide(side, idx, n) || idx === qSel[side]) return false;
+  qSel[side] = idx; updateMap(); return true;
 }
 let mapDrag = null;
-$("#q-map").addEventListener("pointerdown", e => {
-  const b = e.target.closest(".rm-bub"); if (!b) return;
+$("#q-svg").addEventListener("pointerdown", e => {
+  const g = e.target.closest(".rb-bub"); if (!g) return;
   e.preventDefault();
-  mapDrag = { end: b.dataset.end, id: e.pointerId, moved: false };
-  b.setPointerCapture(e.pointerId); b.classList.add("drag");
+  mapDrag = { side: g.dataset.side, id: e.pointerId, moved: false };
+  g.setPointerCapture(e.pointerId); g.classList.add("drag");
 });
-$("#q-map").addEventListener("pointermove", e => {
+$("#q-svg").addEventListener("pointermove", e => {
   if (!mapDrag || e.pointerId !== mapDrag.id) return;
-  const inner = $("#q-map .rm-inner"), rc = inner.getBoundingClientRect(), x = (e.clientX - rc.left) / rc.width;
-  const pos = mapPos(), other = qSel[mapDrag.end === "from" ? "to" : "from"], cur = qSel[mapDrag.end];
-  // 相手を追い越さず、最低1区間あける。止まれるのは乗換駅と両端だけ
-  let best = cur, bd = Infinity;
-  pos.forEach((p, i) => {
-    if (!canStop(i) || i === other || (cur < other) !== (i < other)) return;
-    const d = Math.abs(p - x); if (d < bd) { bd = d; best = i; }
-  });
-  if (best !== cur) { qSel[mapDrag.end] = best; mapDrag.moved = true; updateMap(); }
+  const x = svgX(e), n = baseRoute().stations.length;
+  let best = qSel[mapDrag.side], bd = Infinity;
+  for (let i = 0; i < n; i++) if (onSide(mapDrag.side, i, n)) { const d = Math.abs(nodeX(i) - x); if (d < bd) { bd = d; best = i; } }
+  if (moveBubble(mapDrag.side, best)) mapDrag.moved = true;
 });
 const endDrag = e => {
   if (!mapDrag || e.pointerId !== mapDrag.id) return;
   const moved = mapDrag.moved; mapDrag = null;
-  document.querySelectorAll("#q-map .rm-bub.drag").forEach(b => b.classList.remove("drag"));
+  document.querySelectorAll("#q-svg .rb-bub.drag").forEach(g => g.classList.remove("drag"));
   if (moved) renderSearch();
 };
-$("#q-map").addEventListener("pointerup", endDrag);
-$("#q-map").addEventListener("pointercancel", endDrag);
-$("#q-home").onclick = () => { const n = baseRoute().stations.length; qSel = { from: n - 1, to: 0, n }; renderSearch(); };
-$("#q-school").onclick = () => { const n = baseRoute().stations.length; qSel = { from: 0, to: n - 1, n }; renderSearch(); };
-$("#q-swap").onclick = () => { qSel = { from: qSel.to, to: qSel.from, n: qSel.n }; renderSearch(); };
-addEventListener("resize", placeBubbles);
+$("#q-svg").addEventListener("pointerup", endDrag);
+$("#q-svg").addEventListener("pointercancel", endDrag);
+$("#q-svg").addEventListener("keydown", e => {
+  const g = e.target.closest(".rb-bub");
+  if (g && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+    e.preventDefault();
+    if (moveBubble(g.dataset.side, qSel[g.dataset.side] + (e.key === "ArrowRight" ? 1 : -1))) renderSearch();
+    return;
+  }
+  const b = e.target.closest(".rb-btn");
+  if (b && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); b.dispatchEvent(new MouseEvent("click", { bubbles: true })); }
+});
+$("#q-svg").addEventListener("click", e => {
+  const b = e.target.closest(".rb-btn"); if (!b) return;
+  const n = baseRoute().stations.length;
+  if (b.id === "q-home") qSel = { l: 0, r: n - 1, dir: "in", n };
+  if (b.id === "q-school") qSel = { l: 0, r: n - 1, dir: "out", n };
+  if (b.id === "q-swap") qSel.dir = qSel.dir === "out" ? "in" : "out";
+  renderSearch();
+});
+if (document.fonts) document.fonts.ready.then(() => updateMap());
 
 function renderSearch() {
   const N = baseRoute().stations.length;
-  if (qSel.n !== N || qSel.from === qSel.to) { qSel = defaultSel(); renderMap(); }
-  else renderMap();
-  const dir = qSel.from < qSel.to ? "out" : "in", { stations, lines } = route(dir);
+  if (qSel.n !== N) qSel = defaultSel();
+  renderMap();
+  const dir = qSel.dir, { stations, lines } = route(dir);
   // 検索に使う区間（dir の向きの番号）
-  const A = dir === "out" ? qSel.from : N - 1 - qSel.from, B = dir === "out" ? qSel.to : N - 1 - qSel.to;
+  const A = dir === "out" ? selFrom() : N - 1 - selFrom(), B = dir === "out" ? selTo() : N - 1 - selTo();
   $("#mode-dep").setAttribute("aria-pressed", S.ui.mode === "dep");
   $("#mode-arr").setAttribute("aria-pressed", S.ui.mode === "arr");
   $("#q-day").value = S.ui.day;
@@ -778,7 +821,9 @@ function renderData() {
 }
 function renderBanner() {
   const nSample = Object.values(S.sample).filter(Boolean).length;
-  const nProv = Object.values(S.xf).filter(r => r.prov).length;
+  // 今の経路の乗換駅（直通の駅は除く）だけを数える
+  let nProv = 0;
+  for (const dir of ["out", "in"]) { const { stations, through } = route(dir); for (const st of stations.slice(1, -1)) if (!through.has(st) && S.xf[`${dir}:${st}`]?.prov) nProv++; }
   const parts = [];
   if (nSample) parts.push(`<b>サンプル時刻表</b>（実際のダイヤではありません）の区間が ${nSample} 件あります。`);
   if (nProv) parts.push(`仮の乗換時間が ${nProv} 件あります。`);
@@ -807,7 +852,7 @@ window.addEventListener("hashchange", fromHash);
 /* ===== 操作 ===== */
 document.querySelectorAll("[data-dir]").forEach(b => b.onclick = () => { S.ui.dir = b.dataset.dir; save(); render(); });
 $("#mode-dep").onclick = () => { S.ui.mode = "dep"; save(); render(); };
-$("#mode-arr").onclick = () => { S.ui.mode = "arr"; if (!S.ui.qTime) S.ui.qTime = qSel.from < qSel.to ? "08:30" : "18:00"; save(); render(); };
+$("#mode-arr").onclick = () => { S.ui.mode = "arr"; if (!S.ui.qTime) S.ui.qTime = qSel.dir === "out" ? "08:30" : "18:00"; save(); render(); };
 $("#q-time").onchange = e => { S.ui.qTime = e.target.value || null; save(); render(); };
 $("#q-now").onclick = () => { S.ui.qTime = null; S.ui.mode = "dep"; liveSnap = nowService(); save(); render(); };
 $("#q-live").onclick = () => { S.ui.qTime = hhmm(nowService().sec); save(); render(); $("#q-time").focus(); };
