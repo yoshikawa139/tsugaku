@@ -147,18 +147,22 @@ table.status tr.sp td { height: 14px; padding: 0; border-bottom: 0; }
 /* 検索の上部：画面の幅いっぱい。寸法は見本（幅737）の画素を --u 単位でそのまま使う */
 .sbox { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--hdr-h, 86px)); z-index: 4; container-type: inline-size; width: 100vw; margin-left: calc(50% - 50vw); margin-top: -16px; background: #F2F2F2; display: flex; flex-direction: column; }
 .rbar { background: var(--rb-bg); }
-/* 試験用：始点・終点の帯を画面の下端に置く */
+/* 吹き出し帯と検索帯は別々に置く。右上の試験用チェック：右＝吹き出し帯の縦横、左＝検索帯の上下 */
 .dbg { display: flex; gap: 10px; }
 .dbg input { width: 16px; height: 16px; margin: 0; accent-color: #F2F2F2; opacity: .6; }
-body.rb-bottom:not(.rb-side) .rbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; padding-bottom: env(safe-area-inset-bottom, 0px); border-top: 1.5px solid #F2F2F2; }
-body.rb-bottom main { padding-bottom: var(--rb-h, 0px); }
-/* 試験用：吹き出し帯を右端に縦に置く（帯をそのまま左回りに90度回し、長さだけ画面の高さに合わせる。文字とマークは正立） */
+/* 横置き：吹き出し帯は検索帯と反対の端（検索帯が上なら下端、下なら見出しのすぐ下） */
+body.rb-bottom .rbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; padding-bottom: env(safe-area-inset-bottom, 0px); border-top: 1.5px solid #F2F2F2; }
+body.sc-bottom:not(.rb-side) .rbar { border-bottom: 1.5px solid #F2F2F2; }
+/* 検索帯を下端に置く */
+body.sc-bottom .sctl { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; width: auto; background: #F2F2F2; padding-left: max(calc(var(--u) * 16 + (100vw - min(100vw, 600px)) / 2), env(safe-area-inset-left, 0px)); padding-right: max(calc(var(--u) * 16 + (100vw - min(100vw, 600px)) / 2), env(safe-area-inset-right, 0px)); padding-bottom: calc(var(--u) * 18 + env(safe-area-inset-bottom, 0px)); }
+body.rb-bottom main, body.sc-bottom main { padding-bottom: var(--bot-h, 0px); }
+/* 縦置き：吹き出し帯を右端に置く（帯をそのまま左回りに90度回し、長さだけ空いている高さに合わせる。文字とマークは正立） */
 body.rb-side .rbar { position: fixed; z-index: 6; top: calc(var(--side-top, 0px) + var(--side-len, 0px)); left: calc(100% - var(--side-w, 0px)); width: var(--side-len, 0px); transform-origin: 0 0; transform: rotate(-90deg); border-top: 1.5px solid #F2F2F2; }
 body.rb-side .rbar svg { max-width: none; touch-action: none; }
 body.rb-side #results, body.rb-side #sample-banner { margin-right: var(--side-w, 0px); }
 /* 吹き出し帯が下端にあるとき、画面の外側（下端のバー周り）も同じ色にする */
-html:has(body.rb-bottom:not(.rb-side)) { background: var(--rb-bg); }
-body.rb-bottom { min-height: 100dvh; }
+html:has(body.rb-bottom) { background: var(--rb-bg); }
+body.rb-bottom, body.sc-bottom { min-height: 100dvh; }
 #v-search:not([hidden]) { display: flex; flex-direction: column; gap: 16px; }
 .rbar, .sctl { --u: calc(min(100cqw, 600px) / 737); }
 .rbar svg { max-width: 600px; margin: 0 auto; }
@@ -1067,26 +1071,28 @@ $("#bk-reset").onclick = () => {
 const setHdr = () => document.documentElement.style.setProperty("--hdr-h", `${$("header.top").offsetHeight}px`);
 // 試験用：始点・終点の帯を下端に移す
 function setRb() {
-  const side = !!(S.ui.rbBottom && S.ui.rbSide), root = document.documentElement.style;
-  document.body.classList.toggle("rb-bottom", !!S.ui.rbBottom && !side);
+  const side = !!S.ui.rbVert, scb = !!S.ui.scBottom, root = document.documentElement.style;
+  document.body.classList.toggle("rb-bottom", !side && !scb);
   document.body.classList.toggle("rb-side", side);
-  $("#dbg-rb").checked = !!S.ui.rbBottom;
-  $("#dbg-sc").checked = !!S.ui.rbSide; $("#dbg-sc").hidden = !S.ui.rbBottom;
-  // 縦置き：太さは横置きと同じ縮尺のまま、長さを固定部分の下から画面の下端までに伸ばす
+  document.body.classList.toggle("sc-bottom", scb);
+  $("#dbg-rb").checked = side; $("#dbg-sc").checked = scb;
+  const sh = $(".sctl").offsetHeight;
+  // 縦置き：太さは横置きと同じ縮尺のまま、長さを検索帯と見出しを除いた高さいっぱいに伸ばす
   let W = 737;
-  if (side) {
-    const top = $("header.top").getBoundingClientRect().bottom + $(".sctl").offsetHeight;
+  if (side && sh) {
+    const top = $("header.top").getBoundingClientRect().bottom + (scb ? 0 : sh);
     const scale = Math.min(document.documentElement.clientWidth, 600) / 737;
-    const len = Math.max(200, innerHeight - top);
+    const len = Math.max(200, innerHeight - top - (scb ? sh : 0));
     W = len / scale;
     root.setProperty("--side-top", `${top}px`); root.setProperty("--side-len", `${len}px`); root.setProperty("--side-w", `${110 * scale + 1.5}px`);
-  }
+  } else if (side) W = RB.W;
   if ((W !== RB.W || side !== RB.side) && $("#q-svg").firstElementChild) { RB.W = W; RB.side = side; renderMap(); } else { RB.W = W; RB.side = side; }
-  const h = side ? 0 : $(".rbar").offsetHeight;
-  if (h || !S.ui.rbBottom || side) root.setProperty("--rb-h", S.ui.rbBottom && !side ? `${h}px` : "0px");
+  // 下端に固定したものの高さだけ、ページの下に余白を空ける
+  const h = scb ? sh : side ? 0 : $(".rbar").offsetHeight;
+  if (h || side && !scb) root.setProperty("--bot-h", `${h}px`);
 }
-$("#dbg-rb").onchange = e => { S.ui.rbBottom = e.target.checked; save(); setRb(); };
-$("#dbg-sc").onchange = e => { S.ui.rbSide = e.target.checked; save(); setRb(); };
+$("#dbg-rb").onchange = e => { S.ui.rbVert = e.target.checked; save(); setRb(); };
+$("#dbg-sc").onchange = e => { S.ui.scBottom = e.target.checked; save(); setRb(); };
 addEventListener("resize", () => setRb());
 setHdr(); addEventListener("resize", setHdr);
 fromHash();
