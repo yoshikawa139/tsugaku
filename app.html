@@ -150,13 +150,15 @@ table.status tr.sp td { height: 14px; padding: 0; border-bottom: 0; }
 /* 試験用：始点・終点の帯を画面の下端に置く */
 .dbg { display: flex; gap: 10px; }
 .dbg input { width: 16px; height: 16px; margin: 0; accent-color: #F2F2F2; opacity: .6; }
-body.rb-bottom:not(.sc-bottom) .rbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; padding-bottom: env(safe-area-inset-bottom, 0px); border-top: 1.5px solid #F2F2F2; }
+body.rb-bottom:not(.rb-side) .rbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; padding-bottom: env(safe-area-inset-bottom, 0px); border-top: 1.5px solid #F2F2F2; }
 body.rb-bottom main { padding-bottom: var(--rb-h, 0px); }
-body.rb-bottom.sc-bottom .rbar { border-bottom: 1.5px solid #F2F2F2; }
+/* 試験用：吹き出し帯を右端に縦に置く（帯をそのまま右回りに90度回し、長さだけ画面の高さに合わせる） */
+body.rb-side .rbar { position: fixed; z-index: 6; top: var(--side-top, 0px); left: 100%; width: var(--side-len, 0px); transform-origin: 0 0; transform: rotate(90deg); border-bottom: 1.5px solid #F2F2F2; }
+body.rb-side .rbar svg { max-width: none; touch-action: none; }
+body.rb-side #results, body.rb-side #sample-banner { margin-right: var(--side-w, 0px); }
 /* 吹き出し帯が下端にあるとき、画面の外側（下端のバー周り）も同じ色にする */
-html:has(body.rb-bottom:not(.sc-bottom)) { background: var(--rb-bg); }
+html:has(body.rb-bottom:not(.rb-side)) { background: var(--rb-bg); }
 body.rb-bottom { min-height: 100dvh; }
-body.rb-bottom.sc-bottom .sctl { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; width: auto; background: #F2F2F2; padding-left: max(calc(var(--u) * 16 + (100vw - min(100vw, 600px)) / 2), env(safe-area-inset-left, 0px)); padding-right: max(calc(var(--u) * 16 + (100vw - min(100vw, 600px)) / 2), env(safe-area-inset-right, 0px)); padding-bottom: calc(var(--u) * 18 + env(safe-area-inset-bottom, 0px)); }
 #v-search:not([hidden]) { display: flex; flex-direction: column; gap: 16px; }
 .rbar, .sctl { --u: calc(min(100cqw, 600px) / 737); }
 .rbar svg { max-width: 600px; margin: 0 auto; }
@@ -563,7 +565,7 @@ function posText(dir, i) {
 // 駅の番号は常に行きの並び（左端＝家側、右端＝大学側）。
 // 左の吹き出しは前半の駅、右の吹き出しは後半の駅だけを動く。dir が out なら左→右、in なら右→左。
 // 帯の図は幅737×高さ110の座標（見本の画像の画素そのまま）
-const RB = { x0: 59.5, x1: 657.5, nodeY: 47, arrowY: 22, bubY: 68, bubH: 30, bubPad: 26, bubFont: 19 };
+const RB = { W: 737, x0: 59.5, x1: 657.5, nodeY: 47, arrowY: 22, bubY: 68, bubH: 30, bubPad: 26, bubFont: 19 };
 const MAP_POS_6 = [0, .1664, .3027, .7358, .9231, 1]; // 見本どおりの駅の間隔
 function defaultSel() {
   // 開いたときは 3〜16時なら行き（大学マーク）、それ以外は帰り（家マーク）
@@ -595,14 +597,16 @@ function renderMap() {
       ? `<circle class="rb-node thru" cx="${x}" cy="${RB.nodeY}" r="7"/>`
       : `<circle class="rb-node" cx="${x}" cy="${RB.nodeY}" r="7.5"/>`;
   }).join("");
-  $("#q-svg").innerHTML = `
-    <rect class="rb-bg" x="0" y="-2" width="737" height="113"/>
+  const W = RB.W, svg = $("#q-svg");
+  RB.x1 = W - 79.5; svg.setAttribute("viewBox", `0 -1.5 ${W} 110`);
+  svg.innerHTML = `
+    <rect class="rb-bg" x="0" y="-2" width="${W}" height="113"/>
     <g id="q-home" class="rb-btn" role="button" tabindex="0" aria-label="家へ帰る向きにする（帰り）" transform="translate(-94.5,-90.5)">
       <rect class="rb-hit" x="94.5" y="95" width="56" height="100"/>
       <path class="rb-icon" d="M105,134 L121,118.7 L137.25,134 L133.5,136.3 L121,123.2 L108.75,136.3 Z"/>
       <path class="rb-icon" d="M109.5,135.8 V146.2 H118.6 V136.8 H123.6 V146.2 H132.8 V135.8"/>
     </g>
-    <g id="q-school" class="rb-btn" role="button" tabindex="0" aria-label="大学へ行く向きにする（行き）" transform="translate(-17,-90.5)">
+    <g id="q-school" class="rb-btn" role="button" tabindex="0" aria-label="大学へ行く向きにする（行き）" transform="translate(${W - 754},-90.5)">
       <rect class="rb-hit" x="688" y="95" width="66" height="100"/>
       <path class="rb-icon" d="M695,146.25 H739.4 V126.4 H724.4 V110.5 H709.4 V126.4 H695 Z M712.5,130.9 H721.3 M712.5,146.25 V139 A4.4,4.4 0 0 1 721.3,139 V146.25"/>
       <circle class="rb-icon" cx="716.9" cy="118.2" r="3"/>
@@ -1056,16 +1060,26 @@ $("#bk-reset").onclick = () => {
 const setHdr = () => document.documentElement.style.setProperty("--hdr-h", `${$("header.top").offsetHeight}px`);
 // 試験用：始点・終点の帯を下端に移す
 function setRb() {
-  const sc = !!(S.ui.rbBottom && S.ui.scBottom);
-  document.body.classList.toggle("rb-bottom", !!S.ui.rbBottom);
-  document.body.classList.toggle("sc-bottom", sc);
+  const side = !!(S.ui.rbBottom && S.ui.rbSide), root = document.documentElement.style;
+  document.body.classList.toggle("rb-bottom", !!S.ui.rbBottom && !side);
+  document.body.classList.toggle("rb-side", side);
   $("#dbg-rb").checked = !!S.ui.rbBottom;
-  $("#dbg-sc").checked = !!S.ui.scBottom; $("#dbg-sc").hidden = !S.ui.rbBottom;
-  const h = $(sc ? ".sctl" : ".rbar").offsetHeight;
-  if (h || !S.ui.rbBottom) document.documentElement.style.setProperty("--rb-h", S.ui.rbBottom ? `${h}px` : "0px");
+  $("#dbg-sc").checked = !!S.ui.rbSide; $("#dbg-sc").hidden = !S.ui.rbBottom;
+  // 縦置き：太さは横置きと同じ縮尺のまま、長さを固定部分の下から画面の下端までに伸ばす
+  let W = 737;
+  if (side) {
+    const top = $("header.top").getBoundingClientRect().bottom + $(".sctl").offsetHeight;
+    const scale = Math.min(document.documentElement.clientWidth, 600) / 737;
+    const len = Math.max(200, innerHeight - top);
+    W = len / scale;
+    root.setProperty("--side-top", `${top}px`); root.setProperty("--side-len", `${len}px`); root.setProperty("--side-w", `${Math.round(110 * scale)}px`);
+  }
+  if (W !== RB.W && $("#q-svg").firstElementChild) { RB.W = W; renderMap(); } else RB.W = W;
+  const h = side ? 0 : $(".rbar").offsetHeight;
+  if (h || !S.ui.rbBottom || side) root.setProperty("--rb-h", S.ui.rbBottom && !side ? `${h}px` : "0px");
 }
 $("#dbg-rb").onchange = e => { S.ui.rbBottom = e.target.checked; save(); setRb(); };
-$("#dbg-sc").onchange = e => { S.ui.scBottom = e.target.checked; save(); setRb(); };
+$("#dbg-sc").onchange = e => { S.ui.rbSide = e.target.checked; save(); setRb(); };
 addEventListener("resize", () => setRb());
 setHdr(); addEventListener("resize", setHdr);
 fromHash();
