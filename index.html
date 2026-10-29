@@ -620,7 +620,8 @@ function renderMap() {
     <g class="rb-bub" data-side="l" role="slider" tabindex="0"><rect class="rb-bub-hit"/><path class="rb-bub-box"/><text class="rb-bub-text" y="${RB.bubY + RB.bubH / 2 + .5}"></text><g class="rb-bub-v"></g></g>
     <g class="rb-bub" data-side="r" role="slider" tabindex="0"><rect class="rb-bub-hit"/><path class="rb-bub-box"/><text class="rb-bub-text" y="${RB.bubY + RB.bubH / 2 + .5}"></text><g class="rb-bub-v"></g></g>`;
   // 縦置きのときはマークを逆に回して正立させる
-  if (RB.side) svg.querySelectorAll(".rb-ico").forEach(g => { const b = g.getBBox(); g.setAttribute("transform", `rotate(90 ${b.x + b.width / 2} ${b.y + b.height / 2})`); });
+  // 縦置きのときはマークを逆に回して正立させ、中心を点線の軸に合わせる（外の g が縦に -90.5 ずらしている）
+  if (RB.side) svg.querySelectorAll(".rb-ico").forEach(g => { const b = g.getBBox(), cx = b.x + b.width / 2, cy = b.y + b.height / 2; g.setAttribute("transform", `translate(0 ${RB.nodeY + 90.5 - cy}) rotate(90 ${cx} ${cy})`); });
   updateMap();
 }
 // 文字が枠に収まらないときだけ横に詰める
