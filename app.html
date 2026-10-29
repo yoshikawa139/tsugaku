@@ -147,22 +147,10 @@ table.status tr.sp td { height: 14px; padding: 0; border-bottom: 0; }
 /* 検索の上部：画面の幅いっぱい。寸法は見本（幅737）の画素を --u 単位でそのまま使う */
 .sbox { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--hdr-h, 86px)); z-index: 4; container-type: inline-size; width: 100vw; margin-left: calc(50% - 50vw); margin-top: -16px; background: #F2F2F2; display: flex; flex-direction: column; }
 .rbar { background: var(--rb-bg); }
-/* 吹き出し帯と検索帯は別々に置く。右上の試験用チェック：右＝吹き出し帯の縦横、左＝検索帯の上下 */
-.dbg { display: flex; gap: 10px; }
-.dbg input { width: 16px; height: 16px; margin: 0; accent-color: #F2F2F2; opacity: .6; }
-/* 横置き：吹き出し帯は検索帯と反対の端（検索帯が上なら下端、下なら見出しのすぐ下） */
-body.rb-bottom .rbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; padding-bottom: env(safe-area-inset-bottom, 0px); border-top: 1.5px solid #F2F2F2; }
-body.sc-bottom:not(.rb-side) .rbar { border-bottom: 1.5px solid #F2F2F2; }
-/* 検索帯を下端に置く */
-body.sc-bottom .sctl { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; width: auto; background: #F2F2F2; padding-left: max(calc(var(--u) * 16 + (100vw - min(100vw, 600px)) / 2), env(safe-area-inset-left, 0px)); padding-right: max(calc(var(--u) * 16 + (100vw - min(100vw, 600px)) / 2), env(safe-area-inset-right, 0px)); padding-bottom: calc(var(--u) * 18 + env(safe-area-inset-bottom, 0px)); }
-body.rb-bottom main, body.sc-bottom main { padding-bottom: var(--bot-h, 0px); }
-/* 縦置き：吹き出し帯を右端に置く（帯をそのまま左回りに90度回し、長さだけ空いている高さに合わせる。文字とマークは正立） */
+/* 吹き出し帯は右端に縦に置く（横長の帯をそのまま左回りに90度回し、長さだけ検索帯の下から画面の下端までに合わせる。文字とマークは正立）。乗り換えカードは帯の下に潜る */
 body.rb-side .rbar { position: fixed; z-index: 6; top: calc(var(--side-top, 0px) + var(--side-len, 0px)); left: calc(100% - var(--side-w, 0px)); width: var(--side-len, 0px); transform-origin: 0 0; transform: rotate(-90deg); border-top: 1.5px solid #F2F2F2; }
 body.rb-side .rbar svg { max-width: none; touch-action: none; }
-body.rb-side #results, body.rb-side #sample-banner { margin-right: var(--side-w, 0px); }
-/* 吹き出し帯が下端にあるとき、画面の外側（下端のバー周り）も同じ色にする */
-html:has(body.rb-bottom) { background: var(--rb-bg); }
-body.rb-bottom, body.sc-bottom { min-height: 100dvh; }
+body.rb-side #sample-banner { margin-right: var(--side-w, 0px); }
 #v-search:not([hidden]) { display: flex; flex-direction: column; gap: 16px; }
 .rbar, .sctl { --u: calc(min(100cqw, 600px) / 737); }
 .rbar svg { max-width: 600px; margin: 0 auto; }
@@ -180,9 +168,10 @@ body.rb-bottom, body.sc-bottom { min-height: 100dvh; }
 .when .chev svg { width: calc(var(--u) * 21); height: calc(var(--u) * 13); }
 .gowrap { position: relative; }
 .gobtn { width: 100%; height: calc(var(--u) * 55); background: #FF666C; color: #FFFFFF; border: calc(var(--u) * 3) solid #212B3D; border-radius: calc(var(--u) * 8); font-size: calc(var(--u) * 34); font-weight: 700; padding: 0; }
-.gear { position: absolute; right: calc(var(--u) * 9); top: 50%; transform: translateY(-50%); width: calc(var(--u) * 44); height: calc(var(--u) * 44); border: 0; border-radius: calc(var(--u) * 6); background: transparent; color: #FFFFFF; display: grid; place-items: center; padding: 0; }
+.gear { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: calc(var(--u) * 62); height: calc(var(--u) * 71); border: 0; border-radius: calc(var(--u) * 6); background: transparent; color: #FFFFFF; display: grid; place-items: center; padding: 0; }
 .gear svg { width: calc(var(--u) * 32); height: calc(var(--u) * 32); }
-.gear:active, .sswap:active { background: rgba(0,0,0,.12); }
+.sswap:active { background: rgba(0,0,0,.12); }
+.gear:active svg { opacity: .7; }
 .rbar svg { display: block; width: 100%; height: auto; touch-action: pan-y; font-family: var(--font-body); -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 .rb-bg { fill: var(--rb-bg); }
 .rb-hit { fill: transparent; }
@@ -204,6 +193,8 @@ circle.rb-icon { stroke-width: 1.4; }
 .rb-bub { cursor: grab; outline: none; }
 .rb-bub.drag { cursor: grabbing; }
 .rb-bub-hit { fill: transparent; }
+/* 指で触れる先は常に当たり判定の四角にする（文字や枠は描き直しで入れ替わるため） */
+.rb-bub-box, .rb-bub-text { pointer-events: none; }
 .rb-bub-box { fill: var(--rb-bg); stroke: var(--rb-ink); stroke-width: 2; stroke-linejoin: round; }
 .rb-bub.drag .rb-bub-box { stroke: var(--sel); }
 .rb-bub-text { font-size: 19px; font-weight: 700; fill: var(--rb-ink); text-anchor: middle; dominant-baseline: central; }
@@ -232,7 +223,6 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
   <div class="wrap">
     <div class="brand">
       <h1>通学ダイヤ<small id="brand-route"></small></h1>
-      <span class="dbg"><input id="dbg-sc" type="checkbox" aria-label="デバッグ2"><input id="dbg-rb" type="checkbox" aria-label="デバッグ"></span>
     </div>
     <nav class="tabs" aria-label="画面">
       <a href="#search" data-view="search">検索</a>
@@ -579,7 +569,8 @@ function defaultSel() {
 let qSel = defaultSel();
 const selFrom = () => qSel.dir === "out" ? qSel.l : qSel.r;
 const selTo = () => qSel.dir === "out" ? qSel.r : qSel.l;
-const onSide = (side, i, n) => side === "l" ? i < n / 2 : i >= n / 2;
+// 吹き出しは、始点側が終点側を追い越さない範囲（行きの並びで常に l < r）なら自由に動く
+const onSide = (side, i, n) => i >= 0 && i < n && (side === "l" ? i < qSel.r : i > qSel.l);
 function mapPos() {
   const r = baseRoute(), n = r.stations.length - 1;
   if (n + 1 === MAP_POS_6.length) return MAP_POS_6;
@@ -646,29 +637,44 @@ function updateMap(drag) {
   svg.querySelector(".rb-arrow-line").setAttribute("x1", xa); svg.querySelector(".rb-arrow-line").setAttribute("x2", base + sg);
   svg.querySelector(".rb-arrow-dot").setAttribute("cx", xa);
   svg.querySelector(".rb-arrow-head").setAttribute("d", `M${tip},${y} L${base},${y - 7.5} L${base},${y + 7.5} Z`);
-  // 吹き出し：点の真下に置き、突起は真ん中から真上へ。カードの端に当たるときだけ端で止め、突起を点の側へ寄せる
-  const L = RB.x0 - 3.5, Rt = RB.x1 + 4.5;
+  // 吹き出し：点の真下に置き、突起は真ん中から真上へ。帯の端に当たるときだけ端で止め、突起を点の側へ寄せる
+  const L = RB.x0 - 3.5, Rt = RB.x1 + 4.5, bx = {};
   for (const side of ["l", "r"]) {
     const g = svg.querySelector(`.rb-bub[data-side="${side}"]`), i = qSel[side], t = g.querySelector("text");
     const n = drag && drag.side === side ? drag.x : nodeX(i);
     // 縦置きのときは1文字ずつ正立させて上から下へ並べる（縦書き）
     const ch = [...st[i]], step = Math.min(RB.bubFont + 1, 200 / ch.length);
     t.textContent = RB.side ? "" : st[i];
-    const w = (RB.side ? ch.length * step : fitText(t, 200)) + RB.bubPad, y0 = RB.bubY, y1 = RB.bubY + RB.bubH, rr = 6;
-    const x0 = Math.max(L, Math.min(Rt - w, n - w / 2)), x1 = x0 + w;
+    const w = (RB.side ? ch.length * step : fitText(t, 200)) + RB.bubPad;
+    bx[side] = { g, i, t, n, ch, step, w, x0: Math.max(L, Math.min(Rt - w, n - w / 2)) };
+  }
+  // 2つの吹き出しが重なるときは互いに押し離す（突起は点を指したまま斜めになる）
+  const ov = bx.l.x0 + bx.l.w + 4 - bx.r.x0;
+  if (ov > 0) {
+    let dl = Math.min(ov / 2, bx.l.x0 - L), dr = ov - dl;
+    if (bx.r.x0 + bx.r.w + dr > Rt) { dr = Math.max(0, Rt - bx.r.x0 - bx.r.w); dl = ov - dr; }
+    bx.l.x0 -= dl; bx.r.x0 += dr;
+  }
+  const mid = (bx.l.x0 + bx.l.w + bx.r.x0) / 2;
+  for (const side of ["l", "r"]) {
+    const { g, i, t, n, ch, step, w, x0 } = bx[side], x1 = x0 + w, y0 = RB.bubY, y1 = RB.bubY + RB.bubH, rr = 6;
     let tail;
     if (x0 === L && n < x0 + w / 2) tail = [[x0 + 9.5, y0], [x0 + 9.5, y0 - 7.5], [x0 + 25.5, y0]];          // 左端（見本の形）
     else if (x1 === Rt && n > x0 + w / 2) tail = [[x1 - 44.5, y0], [x1 - 11.5, y0 - 11], [x1 - 18, y0]];     // 右端（見本の形）
-    else tail = [[n - 7, y0], [n, y0 - 7.5], [n + 7, y0]];
+    else { const tb = Math.max(x0 + rr + 7, Math.min(x1 - rr - 7, n)); tail = [[tb - 7, y0], [n, y0 - 7.5], [tb + 7, y0]]; }
     const [a, b, c] = tail[0][0] < tail[2][0] ? tail : [tail[2], tail[1], tail[0]];
     const box = `M${c[0]},${y0} H${x1 - rr} A${rr},${rr} 0 0 1 ${x1},${y0 + rr} V${y1 - rr} A${rr},${rr} 0 0 1 ${x1 - rr},${y1} H${x0 + rr} A${rr},${rr} 0 0 1 ${x0},${y1 - rr} V${y0 + rr} A${rr},${rr} 0 0 1 ${x0 + rr},${y0} H${a[0]} L${b[0]},${b[1]} Z`;
     g.querySelector(".rb-bub-box").setAttribute("d", box);
-    const hit = g.querySelector(".rb-bub-hit");
-    hit.setAttribute("x", x0 - 14); hit.setAttribute("width", w + 28); hit.setAttribute("y", 34); hit.setAttribute("height", 76);
+    // 当たり判定は広めにとるが、隣の吹き出しとの中間までにする
+    const hit = g.querySelector(".rb-bub-hit"), h0 = side === "l" ? x0 - 14 : Math.max(x0 - 14, mid), h1 = side === "l" ? Math.min(x1 + 14, mid) : x1 + 14;
+    hit.setAttribute("x", h0); hit.setAttribute("width", h1 - h0); hit.setAttribute("y", 34); hit.setAttribute("height", 76);
     t.setAttribute("x", (x0 + x1) / 2);
     const cy = RB.bubY + RB.bubH / 2 + .5;
-    g.querySelector(".rb-bub-v").innerHTML = RB.side ? ch.map((c, k) => { const cx = ((x0 + x1) / 2 + ((ch.length - 1) / 2 - k) * step).toFixed(2); return `<text class="rb-bub-text" x="${cx}" y="${cy}" transform="rotate(90 ${cx} ${cy})">${esc(c)}</text>`; }).join("") : "";
-    g.setAttribute("aria-label", `${side === "l" ? "左" : "右"}の駅 ${st[i]}（左右にドラッグ、または矢印キーで変更）`);
+    // 文字の要素は駅が変わったときだけ作り直す（指で触れている要素を消さない）
+    const v = g.querySelector(".rb-bub-v"), key = RB.side ? st[i] : "";
+    if (v.dataset.key !== key) { v.dataset.key = key; v.innerHTML = RB.side ? ch.map(c => `<text class="rb-bub-text">${esc(c)}</text>`).join("") : ""; }
+    [...v.children].forEach((el, k) => { const cx = ((x0 + x1) / 2 + ((ch.length - 1) / 2 - k) * step).toFixed(2); el.setAttribute("x", cx); el.setAttribute("y", cy); el.setAttribute("transform", `rotate(90 ${cx} ${cy})`); });
+    g.setAttribute("aria-label", `${side === "l" ? "下" : "上"}の駅 ${st[i]}（上下にドラッグ、または矢印キーで変更）`);
     g.setAttribute("aria-valuetext", st[i]);
   }
 }
@@ -707,9 +713,9 @@ $("#q-svg").addEventListener("pointercancel", endDrag);
 $("#q-swap").onclick = () => { qSel.dir = qSel.dir === "out" ? "in" : "out"; renderSearch(); };
 $("#q-svg").addEventListener("keydown", e => {
   const g = e.target.closest(".rb-bub");
-  if (g && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+  if (g && ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
     e.preventDefault();
-    if (moveBubble(g.dataset.side, qSel[g.dataset.side] + (e.key === "ArrowRight" ? 1 : -1))) renderSearch();
+    if (moveBubble(g.dataset.side, qSel[g.dataset.side] + (e.key === "ArrowRight" || e.key === "ArrowUp" ? 1 : -1))) renderSearch();
     return;
   }
   const b = e.target.closest(".rb-btn");
@@ -727,7 +733,9 @@ if (document.fonts) document.fonts.ready.then(() => updateMap());
 function renderSearch() {
   const N = baseRoute().stations.length;
   if (qSel.n !== N) qSel = defaultSel();
-  renderMap();
+  // 図は経路や長さが変わったときだけ描き直す（ドラッグ直後の要素を消さない）
+  const mk = `${baseRoute().stations.join("|")}#${RB.W}#${RB.side}`;
+  if (mk !== RB.key || !$("#q-svg").firstElementChild) { RB.key = mk; renderMap(); } else updateMap();
   const dir = qSel.dir, { stations, lines } = route(dir);
   // 検索に使う区間（dir の向きの番号）
   const A = dir === "out" ? selFrom() : N - 1 - selFrom(), B = dir === "out" ? selTo() : N - 1 - selTo();
@@ -1071,28 +1079,20 @@ $("#bk-reset").onclick = () => {
 const setHdr = () => document.documentElement.style.setProperty("--hdr-h", `${$("header.top").offsetHeight}px`);
 // 試験用：始点・終点の帯を下端に移す
 function setRb() {
-  const side = !!S.ui.rbVert, scb = !!S.ui.scBottom, root = document.documentElement.style;
-  document.body.classList.toggle("rb-bottom", !side && !scb);
-  document.body.classList.toggle("rb-side", side);
-  document.body.classList.toggle("sc-bottom", scb);
-  $("#dbg-rb").checked = side; $("#dbg-sc").checked = scb;
+  const root = document.documentElement.style;
+  document.body.classList.add("rb-side");
   const sh = $(".sctl").offsetHeight;
-  // 縦置き：太さは横置きと同じ縮尺のまま、長さを検索帯と見出しを除いた高さいっぱいに伸ばす
-  let W = 737;
-  if (side && sh) {
-    const top = $("header.top").getBoundingClientRect().bottom + (scb ? 0 : sh);
+  // 太さは横長の帯と同じ縮尺のまま、長さを検索帯の下から画面の下端までに伸ばす
+  let W = RB.W;
+  if (sh) {
+    const top = $("header.top").getBoundingClientRect().bottom + sh;
     const scale = Math.min(document.documentElement.clientWidth, 600) / 737;
-    const len = Math.max(200, innerHeight - top - (scb ? sh : 0));
+    const len = Math.max(200, innerHeight - top);
     W = len / scale;
     root.setProperty("--side-top", `${top}px`); root.setProperty("--side-len", `${len}px`); root.setProperty("--side-w", `${110 * scale + 1.5}px`);
-  } else if (side) W = RB.W;
-  if ((W !== RB.W || side !== RB.side) && $("#q-svg").firstElementChild) { RB.W = W; RB.side = side; renderMap(); } else { RB.W = W; RB.side = side; }
-  // 下端に固定したものの高さだけ、ページの下に余白を空ける
-  const h = scb ? sh : side ? 0 : $(".rbar").offsetHeight;
-  if (h || side && !scb) root.setProperty("--bot-h", `${h}px`);
+  }
+  if ((W !== RB.W || !RB.side) && $("#q-svg").firstElementChild) { RB.W = W; RB.side = true; renderMap(); } else { RB.W = W; RB.side = true; }
 }
-$("#dbg-rb").onchange = e => { S.ui.rbVert = e.target.checked; save(); setRb(); };
-$("#dbg-sc").onchange = e => { S.ui.scBottom = e.target.checked; save(); setRb(); };
 addEventListener("resize", () => setRb());
 setHdr(); addEventListener("resize", setHdr);
 fromHash();
