@@ -1063,10 +1063,6 @@ function setRb() {
   document.body.classList.toggle("sc-bottom", sc);
   $("#dbg-rb").checked = !!S.ui.rbBottom;
   $("#dbg-sc").checked = !!S.ui.scBottom; $("#dbg-sc").hidden = !S.ui.rbBottom;
-  // Android のアプリ版は画面下のバーをテーマ色で塗るので、吹き出し帯が下端にある間はその色に合わせる
-  let meta = document.querySelector('meta[name="theme-color"]');
-  if (!meta) { meta = document.createElement("meta"); meta.name = "theme-color"; document.head.append(meta); }
-  meta.content = S.ui.rbBottom && !sc && S.ui.view === "search" ? getComputedStyle(document.documentElement).getPropertyValue("--rb-bg").trim() : "#12161C";
   const h = $(sc ? ".sctl" : ".rbar").offsetHeight;
   if (h || !S.ui.rbBottom) document.documentElement.style.setProperty("--rb-h", S.ui.rbBottom ? `${h}px` : "0px");
 }
