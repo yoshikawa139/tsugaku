@@ -153,8 +153,8 @@ table.status tr.sp td { height: 14px; padding: 0; border-bottom: 0; }
 .dbg input { width: 16px; height: 16px; margin: 0; accent-color: #F2F2F2; opacity: .6; }
 body.rb-bottom:not(.rb-side) .rbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; padding-bottom: env(safe-area-inset-bottom, 0px); border-top: 1.5px solid #F2F2F2; }
 body.rb-bottom main { padding-bottom: var(--rb-h, 0px); }
-/* 試験用：吹き出し帯を右端に縦に置く（帯をそのまま右回りに90度回し、長さだけ画面の高さに合わせる） */
-body.rb-side .rbar { position: fixed; z-index: 6; top: var(--side-top, 0px); left: 100%; width: var(--side-len, 0px); transform-origin: 0 0; transform: rotate(90deg); border-bottom: 1.5px solid #F2F2F2; }
+/* 試験用：吹き出し帯を右端に縦に置く（帯をそのまま左回りに90度回し、長さだけ画面の高さに合わせる。文字とマークは正立） */
+body.rb-side .rbar { position: fixed; z-index: 6; top: calc(var(--side-top, 0px) + var(--side-len, 0px)); left: calc(100% - var(--side-w, 0px)); width: var(--side-len, 0px); transform-origin: 0 0; transform: rotate(-90deg); border-top: 1.5px solid #F2F2F2; }
 body.rb-side .rbar svg { max-width: none; touch-action: none; }
 body.rb-side #results, body.rb-side #sample-banner { margin-right: var(--side-w, 0px); }
 /* 吹き出し帯が下端にあるとき、画面の外側（下端のバー周り）も同じ色にする */
@@ -605,20 +605,22 @@ function renderMap() {
     <rect class="rb-bg" x="0" y="-2" width="${W}" height="113"/>
     <g id="q-home" class="rb-btn" role="button" tabindex="0" aria-label="家へ帰る向きにする（帰り）" transform="translate(-94.5,-90.5)">
       <rect class="rb-hit" x="94.5" y="95" width="56" height="100"/>
-      <path class="rb-icon" d="M105,134 L121,118.7 L137.25,134 L133.5,136.3 L121,123.2 L108.75,136.3 Z"/>
-      <path class="rb-icon" d="M109.5,135.8 V146.2 H118.6 V136.8 H123.6 V146.2 H132.8 V135.8"/>
+      <g class="rb-ico"><path class="rb-icon" d="M105,134 L121,118.7 L137.25,134 L133.5,136.3 L121,123.2 L108.75,136.3 Z"/>
+      <path class="rb-icon" d="M109.5,135.8 V146.2 H118.6 V136.8 H123.6 V146.2 H132.8 V135.8"/></g>
     </g>
     <g id="q-school" class="rb-btn" role="button" tabindex="0" aria-label="大学へ行く向きにする（行き）" transform="translate(${W - 754},-90.5)">
       <rect class="rb-hit" x="688" y="95" width="66" height="100"/>
-      <path class="rb-icon" d="M695,146.25 H739.4 V126.4 H724.4 V110.5 H709.4 V126.4 H695 Z M712.5,130.9 H721.3 M712.5,146.25 V139 A4.4,4.4 0 0 1 721.3,139 V146.25"/>
+      <g class="rb-ico"><path class="rb-icon" d="M695,146.25 H739.4 V126.4 H724.4 V110.5 H709.4 V126.4 H695 Z M712.5,130.9 H721.3 M712.5,146.25 V139 A4.4,4.4 0 0 1 721.3,139 V146.25"/>
       <circle class="rb-icon" cx="716.9" cy="118.2" r="3"/>
-      <path class="rb-icon" d="M700,130.6 V135 M703.1,130.6 V135 M706.9,130.6 V135 M700,137.5 V141.9 M703.1,137.5 V141.9 M706.9,137.5 V141.9 M726.9,130.6 V135 M730,130.6 V135 M733.75,130.6 V135 M726.9,137.5 V141.9 M730,137.5 V141.9 M733.75,137.5 V141.9"/>
+      <path class="rb-icon" d="M700,130.6 V135 M703.1,130.6 V135 M706.9,130.6 V135 M700,137.5 V141.9 M703.1,137.5 V141.9 M706.9,137.5 V141.9 M726.9,130.6 V135 M730,130.6 V135 M733.75,130.6 V135 M726.9,137.5 V141.9 M730,137.5 V141.9 M733.75,137.5 V141.9"/></g>
     </g>
     <g id="q-arrow"><line class="rb-arrow-line" y1="${RB.arrowY}" y2="${RB.arrowY}"/><circle class="rb-arrow-dot" cy="${RB.arrowY}" r="7.5"/><path class="rb-arrow-head"/></g>
     <line class="rb-dots" x1="${RB.x0}" x2="${RB.x1}" y1="${RB.nodeY}" y2="${RB.nodeY}"/>
     ${nodes}
-    <g class="rb-bub" data-side="l" role="slider" tabindex="0"><rect class="rb-bub-hit"/><path class="rb-bub-box"/><text class="rb-bub-text" y="${RB.bubY + RB.bubH / 2 + .5}"></text></g>
-    <g class="rb-bub" data-side="r" role="slider" tabindex="0"><rect class="rb-bub-hit"/><path class="rb-bub-box"/><text class="rb-bub-text" y="${RB.bubY + RB.bubH / 2 + .5}"></text></g>`;
+    <g class="rb-bub" data-side="l" role="slider" tabindex="0"><rect class="rb-bub-hit"/><path class="rb-bub-box"/><text class="rb-bub-text" y="${RB.bubY + RB.bubH / 2 + .5}"></text><g class="rb-bub-v"></g></g>
+    <g class="rb-bub" data-side="r" role="slider" tabindex="0"><rect class="rb-bub-hit"/><path class="rb-bub-box"/><text class="rb-bub-text" y="${RB.bubY + RB.bubH / 2 + .5}"></text><g class="rb-bub-v"></g></g>`;
+  // 縦置きのときはマークを逆に回して正立させる
+  if (RB.side) svg.querySelectorAll(".rb-ico").forEach(g => { const b = g.getBBox(); g.setAttribute("transform", `rotate(90 ${b.x + b.width / 2} ${b.y + b.height / 2})`); });
   updateMap();
 }
 // 文字が枠に収まらないときだけ横に詰める
@@ -646,8 +648,10 @@ function updateMap(drag) {
   for (const side of ["l", "r"]) {
     const g = svg.querySelector(`.rb-bub[data-side="${side}"]`), i = qSel[side], t = g.querySelector("text");
     const n = drag && drag.side === side ? drag.x : nodeX(i);
-    t.textContent = st[i];
-    const w = fitText(t, 200) + RB.bubPad, y0 = RB.bubY, y1 = RB.bubY + RB.bubH, rr = 6;
+    // 縦置きのときは1文字ずつ正立させて上から下へ並べる（縦書き）
+    const ch = [...st[i]], step = Math.min(RB.bubFont + 1, 200 / ch.length);
+    t.textContent = RB.side ? "" : st[i];
+    const w = (RB.side ? ch.length * step : fitText(t, 200)) + RB.bubPad, y0 = RB.bubY, y1 = RB.bubY + RB.bubH, rr = 6;
     const x0 = Math.max(L, Math.min(Rt - w, n - w / 2)), x1 = x0 + w;
     let tail;
     if (x0 === L && n < x0 + w / 2) tail = [[x0 + 9.5, y0], [x0 + 9.5, y0 - 7.5], [x0 + 25.5, y0]];          // 左端（見本の形）
@@ -659,6 +663,8 @@ function updateMap(drag) {
     const hit = g.querySelector(".rb-bub-hit");
     hit.setAttribute("x", x0 - 14); hit.setAttribute("width", w + 28); hit.setAttribute("y", 34); hit.setAttribute("height", 76);
     t.setAttribute("x", (x0 + x1) / 2);
+    const cy = RB.bubY + RB.bubH / 2 + .5;
+    g.querySelector(".rb-bub-v").innerHTML = RB.side ? ch.map((c, k) => { const cx = ((x0 + x1) / 2 + ((ch.length - 1) / 2 - k) * step).toFixed(2); return `<text class="rb-bub-text" x="${cx}" y="${cy}" transform="rotate(90 ${cx} ${cy})">${esc(c)}</text>`; }).join("") : "";
     g.setAttribute("aria-label", `${side === "l" ? "左" : "右"}の駅 ${st[i]}（左右にドラッグ、または矢印キーで変更）`);
     g.setAttribute("aria-valuetext", st[i]);
   }
@@ -1074,9 +1080,9 @@ function setRb() {
     const scale = Math.min(document.documentElement.clientWidth, 600) / 737;
     const len = Math.max(200, innerHeight - top);
     W = len / scale;
-    root.setProperty("--side-top", `${top}px`); root.setProperty("--side-len", `${len}px`); root.setProperty("--side-w", `${Math.round(110 * scale)}px`);
+    root.setProperty("--side-top", `${top}px`); root.setProperty("--side-len", `${len}px`); root.setProperty("--side-w", `${110 * scale + 1.5}px`);
   }
-  if (W !== RB.W && $("#q-svg").firstElementChild) { RB.W = W; renderMap(); } else RB.W = W;
+  if ((W !== RB.W || side !== RB.side) && $("#q-svg").firstElementChild) { RB.W = W; RB.side = side; renderMap(); } else { RB.W = W; RB.side = side; }
   const h = side ? 0 : $(".rbar").offsetHeight;
   if (h || !S.ui.rbBottom || side) root.setProperty("--rb-h", S.ui.rbBottom && !side ? `${h}px` : "0px");
 }
