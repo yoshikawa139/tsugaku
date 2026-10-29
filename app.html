@@ -84,6 +84,7 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .opt-sub { font-size: 12.5px; color: var(--muted); grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px 12px; }
 .opt-sub .cd { color: var(--accent); font-weight: 700; }
 .opt-sub .tight { color: var(--bad); font-weight: 700; }
+.opt-sub .oday { color: var(--warn); font-weight: 700; }
 .opt[open] > summary { border-bottom: 1px solid var(--rule); }
 .tl { padding: 6px 14px 14px; display: flex; flex-direction: column; }
 .stop { display: grid; grid-template-columns: 52px 18px 1fr; column-gap: 8px; }
@@ -160,9 +161,9 @@ body.rb-side.rb-open #sample-banner { margin-right: var(--side-w, 0px); }
 .tbar button:active { background: rgba(127,127,127,.15); }
 .tbar svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; overflow: visible; }
 .tbar svg * { vector-effect: non-scaling-stroke; }
-/* 家・大学は経路図のマークと同じ形・同じ線の細さで描く */
+/* 家・大学は経路図のマークと同じ形（線の太さは他のマークに合わせる） */
 .tbar svg.mapico { stroke-linejoin: miter; stroke-linecap: butt; }
-.tbar svg.mapico * { vector-effect: none; stroke-width: 1.5; }
+
 .tbar button[aria-pressed="true"] { color: var(--sel); }
 main { padding-bottom: var(--tb-h, 0px); }
 #v-search:not([hidden]) { display: flex; flex-direction: column; gap: 16px; }
@@ -189,7 +190,7 @@ main { padding-bottom: var(--tb-h, 0px); }
 .when .chev svg { width: calc(var(--u) * 21); height: calc(var(--u) * 13); }
 .gowrap { position: relative; }
 .gobtn { width: 100%; height: calc(var(--u) * 55); background: #FF666C; color: #FFFFFF; border: calc(var(--u) * 3) solid #212B3D; border-radius: calc(var(--u) * 8); font-size: calc(var(--u) * 34); font-weight: 700; padding: 0; }
-.gear { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: calc(var(--u) * 62); height: calc(var(--u) * 71); border: 0; border-radius: calc(var(--u) * 6); background: transparent; color: #FFFFFF; display: grid; place-items: center; padding: 0; }
+.gear { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: calc(var(--u) * 62); height: calc(var(--u) * 71); border: 0; border-radius: calc(var(--u) * 6); background: transparent; color: #FFFFFF; display: grid; place-items: center; padding: 0; }
 .gear svg { width: calc(var(--u) * 32); height: calc(var(--u) * 32); }
 .sswap:active { background: rgba(0,0,0,.12); }
 .gear:active svg { opacity: .7; }
@@ -422,8 +423,8 @@ function toSec(s) {
   let h = +m[1]; if (h < 3) h += 24;
   return h * 3600 + +m[2] * 60 + (+m[3] || 0);
 }
-function hm(sec) { const h = Math.floor(sec / 3600) % 24, m = Math.floor(sec % 3600 / 60); return `${h}:${pad(m)}`; }
-function hhmm(sec) { const h = Math.floor(sec / 3600) % 24, m = Math.floor(sec % 3600 / 60); return `${pad(h)}:${pad(m)}`; }
+function hm(sec) { sec = (sec % 86400 + 86400) % 86400; const h = Math.floor(sec / 3600) % 24, m = Math.floor(sec % 3600 / 60); return `${h}:${pad(m)}`; }
+function hhmm(sec) { sec = (sec % 86400 + 86400) % 86400; const h = Math.floor(sec / 3600) % 24, m = Math.floor(sec % 3600 / 60); return `${pad(h)}:${pad(m)}`; }
 function ms(sec) { sec = Math.round(sec); const s = Math.abs(sec); return `${sec < 0 ? "-" : ""}${Math.floor(s / 60)}:${pad(s % 60)}`; }
 function durJa(sec) { const m = Math.round(sec / 60); return m >= 60 ? `${Math.floor(m / 60)}時間${m % 60}分` : `${m}分`; }
 function parseDur(str) {
@@ -545,14 +546,26 @@ function runFrom({ legs, from }, xf, start) {
   return chain;
 }
 // a〜b は使う区間の範囲（dir の向きで数えた区間番号、b は含まない）
-function search(dir, day, mode, qSec, hurry, a = 0, b = legCount()) {
-  const all = buildLegs(dir, day);
-  const built = { legs: all.legs.slice(a, b), from: all.from.slice(a, b - 1) }, legs = built.legs;
+// 前日・当日・翌日の時刻表を、当日0時からの秒数に直して1本の並びにする（日ごとに平日／土休日を判定。日付の指定は当日だけに効く）
+function buildDays(dir, date, a, b) {
+  const legs = [...Array(b - a)].map(() => []), from = [...Array(Math.max(0, b - a - 1))].map(() => new Map());
+  for (const off of [-1, 0, 1]) {
+    const d = new Date(date); d.setDate(d.getDate() + off);
+    const day = off === 0 && S.ui.day !== "auto" ? S.ui.day : dayTypeOf(d);
+    const all = buildLegs(dir, day), sh = off * 86400, tag = `${off}/`;
+    all.legs.slice(a, b).forEach((ts, i) => { for (const t of ts) legs[i].push({ ...t, d: t.d + sh, a: t.a + sh, id: t.id ? tag + t.id : "" }); });
+    all.from.slice(a, b - 1).forEach((m, i) => { for (const [k, v] of m) from[i].set(tag + k, tag + v); });
+  }
+  for (const l of legs) l.sort((x, y) => x.d - y.d);
+  return { legs, from };
+}
+function search(dir, date, mode, qSec, hurry, a = 0, b = legCount()) {
+  const built = buildDays(dir, date, a, b), legs = built.legs;
   if (legs.some(l => !l.length)) return { error: "時刻表が入っていない区間があります。" };
   const xf = transferSecs(dir, hurry).slice(a, b - 1);
   let cands;
   if (mode === "dep") { const i = legs[0].findIndex(t => t.d >= qSec), k = i < 0 ? legs[0].length : i; cands = legs[0].slice(Math.max(0, k - 14), k + 14); }
-  else cands = legs[0].filter(t => t.d <= qSec && t.d >= qSec - 6 * 3600);
+  else { const i = legs[0].findIndex(t => t.d > qSec), k = i < 0 ? legs[0].length : i; cands = legs[0].slice(Math.max(0, k - 40), k); }
   let opts = cands.map(t => runFrom(built, xf, t)).filter(Boolean);
   if (mode === "arr") opts = opts.filter(c => c[c.length - 1].trip.a <= qSec);
   // 後に出ても同じ時刻に着く案は、早く出る案を消す
@@ -569,12 +582,11 @@ function search(dir, day, mode, qSec, hurry, a = 0, b = legCount()) {
 const $ = s => document.querySelector(s);
 let liveTimer = null, toastTimer = null;
 function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, 2200); }
+// 今の暦の日付（0時ちょうど）と、その日の0時からの秒数。日をまたぐ列車は検索側で前日・翌日の時刻表を足して扱う
 function nowService() {
   const d = new Date();
-  let sec = d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds();
-  const date = new Date(d);
-  if (d.getHours() < 3) { sec += 86400; date.setDate(date.getDate() - 1); }
-  return { sec, date };
+  const sec = d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds();
+  return { sec, date: new Date(d.getFullYear(), d.getMonth(), d.getDate()) };
 }
 // 「現在時刻」モードでは、検索を押した（または開いた）ときの時刻で検索する
 let liveSnap = nowService();
@@ -805,8 +817,8 @@ function runSearch() {
   const A = dir === "out" ? selFrom() : N - 1 - selFrom(), B = dir === "out" ? selTo() : N - 1 - selTo();
   const live = !S.ui.qTime;
   const qSec = live ? searchNow().sec : toSec(S.ui.qTime);
-  const day = currentDay();
-  const r = search(dir, day, S.ui.mode, qSec, !S.ui.relax, A, B);
+  const date = searchDate(), base = date.getTime();
+  const r = search(dir, date, S.ui.mode, qSec, !S.ui.relax, A, B);
   const box = $("#results");
   $("#results-pad").style.height = "0px";
   if (r.error) { box.innerHTML = `<div class="panel empty">${r.error}<br><a href="#timetable">時刻表を取り込む</a></div>`; return; }
@@ -816,7 +828,9 @@ function runSearch() {
   box.innerHTML = r.list.map((chain, idx) => {
     const first = chain[0].trip, last = chain[chain.length - 1].trip;
     const minSlack = Math.min(...chain.slice(1).filter(e => !e.through).map(e => e.slack));
-    const cd = live && S.ui.mode === "dep" ? `<span class="cd num" data-leave="${first.d}"></span>` : "";
+    // 発車までの残り時間は、当日0時からの秒数を実際の時刻に直して数える
+    const cd = live && S.ui.mode === "dep" ? `<span class="cd num" data-leave="${base + first.d * 1000}"></span>` : "";
+    const other = first.d < 0 ? "前日" : first.d >= 86400 ? "翌日" : "";
     let tl = "";
     chain.forEach((e, i) => {
       const t = e.trip, ln = lines[A + i];
@@ -838,7 +852,7 @@ function runSearch() {
       <summary>
         <div class="opt-times num">${hm(first.d)}<span class="arrow">→</span>${hm(last.a)}</div>
         <div class="opt-dur">${durJa(last.a - first.d)}</div>
-        <div class="opt-sub"><span>乗換${transfers}回</span>${isFinite(minSlack) && minSlack < 60 ? `<span class="tight">余裕${ms(minSlack)}の乗換あり</span>` : ""}${cd}</div>
+        <div class="opt-sub">${other ? `<span class="oday">${other}</span>` : ""}<span>乗換${transfers}回</span>${isFinite(minSlack) && minSlack < 60 ? `<span class="tight">余裕${ms(minSlack)}の乗換あり</span>` : ""}${cd}</div>
       </summary>
       <div class="tl">${tl}</div>
     </details>`;
@@ -856,9 +870,9 @@ function placeResults() {
   scrollTo({ top: target, behavior: "instant" });
 }
 function tickCountdown() {
-  const ns = nowService().sec;
+  const now = Date.now();
   document.querySelectorAll("[data-leave]").forEach(el => {
-    const left = +el.dataset.leave - ns;
+    const left = Math.round((+el.dataset.leave - now) / 1000);
     el.textContent = left >= 0 ? `発車まで ${ms(left)}` : `発車時刻を ${ms(-left)} 過ぎています`;
   });
 }
