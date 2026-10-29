@@ -161,6 +161,9 @@ body.rb-side.rb-open #sample-banner { margin-right: var(--side-w, 0px); }
 .tbar button:active { background: rgba(127,127,127,.15); }
 .tbar svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; overflow: visible; }
 .tbar svg * { vector-effect: non-scaling-stroke; }
+/* 家・大学は経路図のマークと同じ形・同じ線の細さで描く */
+.tbar svg.mapico { stroke-linejoin: miter; stroke-linecap: butt; }
+.tbar svg.mapico * { vector-effect: none; stroke-width: 1.5; }
 .tbar button[aria-pressed="true"] { color: var(--sel); }
 main { padding-bottom: var(--tb-h, 0px); }
 #v-search:not([hidden]) { display: flex; flex-direction: column; gap: 16px; }
@@ -176,7 +179,14 @@ main { padding-bottom: var(--tb-h, 0px); }
 .sswap svg { display: block; width: calc(var(--u) * 59); height: calc(var(--u) * 48); overflow: visible; }
 .when { position: relative; height: calc(var(--u) * 55); display: flex; align-items: center; justify-content: center; background: #FFFFFF; border: calc(var(--u) * 3) solid #212B3D; border-radius: 999px; color: #212B3D; font-size: calc(var(--u) * 30); padding: 0 calc(var(--u) * 50); white-space: nowrap; }
 .when .num { font-family: var(--font-num); }
-.when .chev { position: absolute; right: calc(var(--u) * 20); top: 50%; transform: translateY(-50%); display: grid; }
+.when .chev { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: calc(var(--u) * 61); height: calc(var(--u) * 55); padding: 0; border: 0; background: transparent; color: inherit; }
+/* 日付・時刻は端末の選択画面を直接開く（透明な入力欄を文字の上に重ねる）。出発／到着は押すたびに切り替え */
+.when .wpart { position: relative; display: inline-flex; align-items: center; height: 100%; }
+.when .wpart + .wpart, .when .wmode { margin-left: 1em; }
+.when .wpart input { position: absolute; inset: 0 -.3em; width: calc(100% + .6em); height: 100%; opacity: 0; border: 0; padding: 0; margin: 0; font-size: 16px; -webkit-appearance: none; appearance: none; }
+.when .wmode { height: 100%; padding: 0 .3em; margin-right: -.3em; border: 0; background: transparent; color: inherit; font: inherit; }
+.when .wmode + span { margin-left: -.3em; }
+.when button:active, .when .wpart:active { background: rgba(0,0,0,.08); }
 .when .chev svg { width: calc(var(--u) * 21); height: calc(var(--u) * 13); }
 .gowrap { position: relative; }
 .gobtn { width: 100%; height: calc(var(--u) * 55); background: #FF666C; color: #FFFFFF; border: calc(var(--u) * 3) solid #212B3D; border-radius: calc(var(--u) * 8); font-size: calc(var(--u) * 34); font-weight: 700; padding: 0; }
@@ -262,7 +272,12 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
             <button id="q-swap" class="sswap" type="button" aria-label="始点と終点を入れ替える"><svg viewBox="327 20 59 48" aria-hidden="true"><path d="M386,33.5 H328.5 M339,23 L328,33.5 L339,44 M327,54.5 H384.5 M374,44 L385,54.5 L374,65" fill="none" stroke="currentColor" stroke-width="3.6"/></svg></button>
             <div class="spill r"><span id="q-to" class="nm"></span><span class="lab">終点</span></div>
           </div>
-          <button id="q-when" class="when" type="button"><span id="q-when-text"></span><span class="chev"><svg viewBox="0 0 21 13" aria-hidden="true"><path d="M1.2,1.2 L10.5,11.4 L19.8,1.2" fill="none" stroke="currentColor" stroke-width="3.2"/></svg></span></button>
+          <div id="q-when" class="when" role="group" aria-label="日時">
+            <span class="wpart"><span id="q-when-date"></span><input id="q-date-in" type="date" aria-label="日付を選ぶ"></span>
+            <span class="wpart"><span id="q-when-time"></span><input id="q-time-in" type="time" aria-label="時刻を選ぶ"></span>
+            <button id="q-when-mode" class="wmode" type="button" aria-label="出発と到着を切り替える"></button><span id="q-when-day"></span>
+            <button id="q-when-open" class="chev" type="button" aria-label="日時の設定を開く"><svg viewBox="0 0 21 13" aria-hidden="true"><path d="M1.2,1.2 L10.5,11.4 L19.8,1.2" fill="none" stroke="currentColor" stroke-width="3.2"/></svg></button>
+          </div>
           <div class="gowrap">
             <button id="q-go" class="gobtn" type="button">検索</button>
             <button id="q-opt" class="gear" type="button" aria-label="検索設定"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M12.49,5.57 L13.06,1.09 L18.94,1.09 L19.51,5.57 L23.27,7.75 L27.44,6.00 L30.39,11.09 L26.78,13.83 L26.78,18.17 L30.39,20.91 L27.44,26.00 L23.27,24.25 L19.51,26.43 L18.94,30.91 L13.06,30.91 L12.49,26.43 L8.73,24.25 L4.56,26.00 L1.61,20.91 L5.22,18.17 L5.22,13.83 L1.61,11.09 L4.56,6.00 L8.73,7.75 Z" fill="none" stroke="currentColor" stroke-width="2.7" stroke-linejoin="round"/><circle cx="16" cy="16" r="5.2" fill="none" stroke="currentColor" stroke-width="2.7"/></svg></button>
@@ -360,9 +375,9 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
 </main>
 <nav id="tbar" class="tbar" aria-label="ツールバー" hidden>
   <button id="tb-mark" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.5 H17.5 V20.5 L12 16.5 L6.5 20.5 Z"/></svg><span>ブックマーク</span></button>
-  <button id="tb-home" type="button"><svg viewBox="103.5 116.5 35 31.5" aria-hidden="true"><path d="M105,134 L121,118.7 L137.25,134 L133.5,136.3 L121,123.2 L108.75,136.3 Z"/><path d="M109.5,135.8 V146.2 H118.6 V136.8 H123.6 V146.2 H132.8 V135.8"/></svg><span>帰り</span></button>
+  <button id="tb-home" type="button"><svg class="mapico" viewBox="103.5 116.5 35 31.5" aria-hidden="true"><path d="M105,134 L121,118.7 L137.25,134 L133.5,136.3 L121,123.2 L108.75,136.3 Z"/><path d="M109.5,135.8 V146.2 H118.6 V136.8 H123.6 V146.2 H132.8 V135.8"/></svg><span>帰り</span></button>
   <button id="tb-now" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7 V12 L15.5 14"/></svg><span>現在時刻</span></button>
-  <button id="tb-school" type="button"><svg viewBox="693.5 107.5 47.5 40.5" aria-hidden="true"><path d="M695,146.25 H739.4 V126.4 H724.4 V110.5 H709.4 V126.4 H695 Z M712.5,130.9 H721.3 M712.5,146.25 V139 A4.4,4.4 0 0 1 721.3,139 V146.25"/><circle cx="716.9" cy="118.2" r="3"/></svg><span>行き</span></button>
+  <button id="tb-school" type="button"><svg class="mapico" viewBox="693.5 107.5 47.5 40.5" aria-hidden="true"><path d="M695,146.25 H739.4 V126.4 H724.4 V110.5 H709.4 V126.4 H695 Z M712.5,130.9 H721.3 M712.5,146.25 V139 A4.4,4.4 0 0 1 721.3,139 V146.25"/><circle cx="716.9" cy="118.2" r="3"/><path d="M700,130.6 V135 M703.1,130.6 V135 M706.9,130.6 V135 M700,137.5 V141.9 M703.1,137.5 V141.9 M706.9,137.5 V141.9 M726.9,130.6 V135 M730,130.6 V135 M733.75,130.6 V135 M726.9,137.5 V141.9 M730,137.5 V141.9 M733.75,137.5 V141.9"/></svg><span>行き</span></button>
   <button id="tb-map" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 6 H20 M8.5 12 H20 M8.5 18 H20"/><circle cx="4.5" cy="6" r=".6"/><circle cx="4.5" cy="12" r=".6"/><circle cx="4.5" cy="18" r=".6"/></svg><span>経路図</span></button>
 </nav>
 
@@ -566,7 +581,10 @@ function nowService() {
 // 「現在時刻」モードでは、検索を押した（または開いた）ときの時刻で検索する
 let liveSnap = nowService();
 const searchNow = () => S.ui.qTime ? nowService() : liveSnap;
-function currentDay() { return S.ui.day === "auto" ? dayTypeOf(searchNow().date) : S.ui.day; }
+// 検索する日付（null＝今日）。保存せず、開き直すと今日に戻る
+let qDate = null;
+function searchDate() { if (!qDate) return searchNow().date; const [y, m, d] = qDate.split("-").map(Number); return new Date(y, m - 1, d); }
+function currentDay() { return S.ui.day === "auto" ? dayTypeOf(searchDate()) : S.ui.day; }
 function posText(dir, i) {
   const p = S.pos[`${dir}:${i}`];
   if (!p || (!p.car && !p.door && !p.note)) return `<span class="pos unset">乗車位置 未設定</span>`;
@@ -605,6 +623,9 @@ function mapPos() {
 }
 const nodeX = i => RB.x0 + mapPos()[i] * (RB.x1 - RB.x0);
 function renderMap() {
+  // 点の位置は帯の長さ（W）から決まるので、先に右端を更新してから点を並べる
+  const W = RB.W, svg = $("#q-svg");
+  RB.x1 = W - 79.5; svg.setAttribute("viewBox", `0 -1.5 ${W} 110`);
   const r = baseRoute(), st = r.stations, thru = new Set(r.through || []);
   const nodes = st.map((s, i) => {
     const x = nodeX(i).toFixed(2);
@@ -612,8 +633,6 @@ function renderMap() {
       ? `<circle class="rb-node thru" cx="${x}" cy="${RB.nodeY}" r="7"/>`
       : `<circle class="rb-node" cx="${x}" cy="${RB.nodeY}" r="7.5"/>`;
   }).join("");
-  const W = RB.W, svg = $("#q-svg");
-  RB.x1 = W - 79.5; svg.setAttribute("viewBox", `0 -1.5 ${W} 110`);
   svg.innerHTML = `
     <rect class="rb-bg" x="0" y="-2" width="${W}" height="113"/>
     <g id="q-home" class="rb-btn" role="button" tabindex="0" aria-label="家へ帰る向きにする（帰り）" transform="translate(-94.5,-90.5)">
@@ -770,8 +789,13 @@ function renderSearch() {
   $("#q-time").hidden = live; $("#q-live").hidden = !live;
   if (!live) $("#q-time").value = S.ui.qTime;
   const day = currentDay();
-  const dt = ns.date, wk = "日月火水木金土"[dt.getDay()];
-  $("#q-when-text").innerHTML = `<span class="num">${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()}</span>(${wk})　${live ? "現在時刻" : `<span class="num">${hm(qSec)}</span>`}　${S.ui.mode === "dep" ? "出発" : "到着"}${S.ui.day === "auto" ? "" : `・${day === "wd" ? "平日" : "土休日"}`}`;
+  const dt = searchDate(), wk = "日月火水木金土"[dt.getDay()];
+  $("#q-when-date").innerHTML = `<span class="num">${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()}</span>(${wk})`;
+  $("#q-when-time").innerHTML = live ? "現在時刻" : `<span class="num">${hm(qSec)}</span>`;
+  $("#q-when-mode").textContent = S.ui.mode === "dep" ? "出発" : "到着";
+  $("#q-when-day").textContent = S.ui.day === "auto" ? "" : `・${day === "wd" ? "平日" : "土休日"}`;
+  $("#q-date-in").value = ymd(dt);
+  $("#q-time-in").value = live ? hhmm(ns.sec % 86400) : S.ui.qTime;
   // 乗り換えカードは「検索」を押したときだけ作り直す（最初の表示とデータ更新後は自動で1回）
   if (!searched) runSearch();
 }
@@ -957,14 +981,18 @@ document.querySelectorAll("[data-dir]").forEach(b => b.onclick = () => { S.ui.di
 $("#mode-dep").onclick = () => { S.ui.mode = "dep"; save(); render(); };
 $("#mode-arr").onclick = () => { S.ui.mode = "arr"; if (!S.ui.qTime) S.ui.qTime = qSel.dir === "out" ? "08:30" : "18:00"; save(); render(); };
 $("#q-time").onchange = e => { S.ui.qTime = e.target.value || null; save(); render(); };
-$("#q-now").onclick = () => { S.ui.qTime = null; S.ui.mode = "dep"; liveSnap = nowService(); save(); render(); };
+$("#q-now").onclick = () => { S.ui.qTime = null; S.ui.mode = "dep"; qDate = null; liveSnap = nowService(); save(); render(); };
+// 日時の欄：日付・時刻は端末の選択画面、出発／到着は押すたびに切り替え、∨だけが日時ウィンドウを開く
+$("#q-date-in").onchange = e => { const v = e.target.value; qDate = v && v !== ymd(searchNow().date) ? v : null; render(); };
+$("#q-time-in").onchange = e => { S.ui.qTime = e.target.value || null; save(); render(); };
+$("#q-when-mode").onclick = () => (S.ui.mode === "dep" ? $("#mode-arr") : $("#mode-dep")).onclick();
+$("#q-when-open").onclick = () => $("#dlg-when").showModal();
 // ツールバー：栞はまだ何もしない。家・時計・大学は既存の操作の近道、目次は吹き出し帯の出し入れ
 $("#tb-home").onclick = () => setWhole("in");
 $("#tb-now").onclick = () => $("#q-now").onclick();
 $("#tb-school").onclick = () => setWhole("out");
 $("#tb-map").onclick = () => { S.ui.rbOpen = !S.ui.rbOpen; save(); setRb(); };
 $("#q-live").onclick = () => { S.ui.qTime = hhmm(nowService().sec); save(); render(); $("#q-time").focus(); };
-$("#q-when").onclick = () => $("#dlg-when").showModal();
 $("#q-opt").onclick = () => $("#dlg-opt").showModal();
 for (const d of document.querySelectorAll("dialog.dlg")) d.addEventListener("click", e => { if (e.target === d) d.close(); });
 $("#q-go").onclick = () => { liveSnap = nowService(); renderSearch(); runSearch(); };
