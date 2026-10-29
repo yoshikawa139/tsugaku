@@ -152,6 +152,10 @@ table.status tr.sp td { height: 14px; padding: 0; border-bottom: 0; }
 .dbg input { width: 16px; height: 16px; margin: 0; accent-color: #F2F2F2; opacity: .6; }
 body.rb-bottom:not(.sc-bottom) .rbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; padding-bottom: env(safe-area-inset-bottom, 0px); border-top: 1.5px solid #F2F2F2; }
 body.rb-bottom main { padding-bottom: var(--rb-h, 0px); }
+body.rb-bottom.sc-bottom .rbar { border-bottom: 1.5px solid #F2F2F2; }
+/* 吹き出し帯が下端にあるとき、画面の外側（下端のバー周り）も同じ色にする */
+html:has(body.rb-bottom:not(.sc-bottom)) { background: var(--rb-bg); }
+body.rb-bottom { min-height: 100dvh; }
 body.rb-bottom.sc-bottom .sctl { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; width: auto; background: #F2F2F2; padding-left: max(calc(var(--u) * 16 + (100vw - min(100vw, 600px)) / 2), env(safe-area-inset-left, 0px)); padding-right: max(calc(var(--u) * 16 + (100vw - min(100vw, 600px)) / 2), env(safe-area-inset-right, 0px)); padding-bottom: calc(var(--u) * 18 + env(safe-area-inset-bottom, 0px)); }
 #v-search:not([hidden]) { display: flex; flex-direction: column; gap: 16px; }
 .rbar, .sctl { --u: calc(min(100cqw, 600px) / 737); }
