@@ -281,7 +281,7 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
           <div class="dlg-act"><button class="btn primary" value="ok">閉じる</button></div>
         </form>
       </dialog>
-      <div id="results" style="display:flex;flex-direction:column;gap:10px"></div>
+      <div id="results" style="display:flex;flex-direction:column;gap:10px"></div><div id="results-pad" aria-hidden="true"></div>
     </section>
 
     <!-- 時刻表 -->
@@ -513,15 +513,18 @@ function search(dir, day, mode, qSec, hurry, a = 0, b = legCount()) {
   if (legs.some(l => !l.length)) return { error: "時刻表が入っていない区間があります。" };
   const xf = transferSecs(dir, hurry).slice(a, b - 1);
   let cands;
-  if (mode === "dep") cands = legs[0].filter(t => t.d >= qSec).slice(0, 14);
-  else cands = legs[0].filter(t => t.d <= qSec && t.d >= qSec - 4 * 3600);
+  if (mode === "dep") { const i = legs[0].findIndex(t => t.d >= qSec), k = i < 0 ? legs[0].length : i; cands = legs[0].slice(Math.max(0, k - 14), k + 14); }
+  else cands = legs[0].filter(t => t.d <= qSec && t.d >= qSec - 6 * 3600);
   let opts = cands.map(t => runFrom(built, xf, t)).filter(Boolean);
   if (mode === "arr") opts = opts.filter(c => c[c.length - 1].trip.a <= qSec);
   // 後に出ても同じ時刻に着く案は、早く出る案を消す
   const keep = []; let minArr = Infinity;
   for (let i = opts.length - 1; i >= 0; i--) { const a = opts[i][opts[i].length - 1].trip.a; if (a < minArr) { keep.unshift(opts[i]); minArr = a; } }
-  const list = mode === "dep" ? keep.slice(0, 4) : keep.slice(-4).reverse();
-  return { list, xf };
+  // 基準時刻の前の3案（lead 件）と後の3案を、出発の早い順に並べる
+  let prev, main;
+  if (mode === "dep") { const i = keep.findIndex(c => c[0].trip.d >= qSec), k = i < 0 ? keep.length : i; prev = keep.slice(Math.max(0, k - 3), k); main = keep.slice(k, k + 3); }
+  else { main = keep.slice(-3); prev = keep.slice(-6, -3); }
+  return { list: [...prev, ...main], lead: prev.length, xf };
 }
 
 /* ===== 描画 ===== */
@@ -716,11 +719,25 @@ function renderSearch() {
   const day = currentDay();
   const dt = ns.date, wk = "日月火水木金土"[dt.getDay()];
   $("#q-when-text").innerHTML = `<span class="num">${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()}</span>(${wk})　${live ? "現在時刻" : `<span class="num">${hm(qSec)}</span>`}　${S.ui.mode === "dep" ? "出発" : "到着"}${S.ui.day === "auto" ? "" : `・${day === "wd" ? "平日" : "土休日"}`}`;
-
+  // 乗り換えカードは「検索」を押したときだけ作り直す（最初の表示とデータ更新後は自動で1回）
+  if (!searched) runSearch();
+}
+let searched = false;
+function runSearch() {
+  searched = true;
+  const N = baseRoute().stations.length;
+  const dir = qSel.dir, { stations, lines } = route(dir);
+  const A = dir === "out" ? selFrom() : N - 1 - selFrom(), B = dir === "out" ? selTo() : N - 1 - selTo();
+  const live = !S.ui.qTime;
+  const qSec = live ? searchNow().sec : toSec(S.ui.qTime);
+  const day = currentDay();
   const r = search(dir, day, S.ui.mode, qSec, !S.ui.relax, A, B);
   const box = $("#results");
+  $("#results-pad").style.height = "0px";
   if (r.error) { box.innerHTML = `<div class="panel empty">${r.error}<br><a href="#timetable">時刻表を取り込む</a></div>`; return; }
   if (!r.list.length) { box.innerHTML = `<div class="panel empty">条件に合う経路がありません。時刻を変えてみてください。</div>`; return; }
+  // 開いておくカード：出発指定なら基準時刻後の最初、到着指定なら間に合う最後
+  const best = S.ui.mode === "dep" ? r.lead : r.list.length - 1;
   box.innerHTML = r.list.map((chain, idx) => {
     const first = chain[0].trip, last = chain[chain.length - 1].trip;
     const minSlack = Math.min(...chain.slice(1).filter(e => !e.through).map(e => e.slack));
@@ -742,7 +759,7 @@ function renderSearch() {
     });
     tl += `<div class="stop"><div class="t num">${hm(last.a)}</div><div class="dot"></div><div><div class="name">${stations[B]}</div></div></div>`;
     const transfers = chain.slice(1).filter(e => !e.through).length;
-    return `<details class="opt" ${idx === 0 ? "open" : ""}>
+    return `<details class="opt"${idx === r.lead ? " data-main" : ""}${idx === best ? " open" : ""}>
       <summary>
         <div class="opt-times num">${hm(first.d)}<span class="arrow">→</span>${hm(last.a)}</div>
         <div class="opt-dur">${durJa(last.a - first.d)}</div>
@@ -752,6 +769,16 @@ function renderSearch() {
     </details>`;
   }).join("");
   tickCountdown();
+  if (S.ui.view === "search") placeResults();
+}
+// 前の案は固定部分の奥に隠し、上にスクロールすると見えるようにする
+function placeResults() {
+  const m = $("#results [data-main]"), pad = $("#results-pad"), sb = $("#v-search .sbox");
+  if (!m) return;
+  const target = Math.max(0, m.getBoundingClientRect().top + scrollY - (parseFloat(getComputedStyle(sb).top) || 0) - sb.offsetHeight - 16);
+  const need = target + innerHeight - document.documentElement.scrollHeight;
+  if (need > 0) pad.style.height = `${need}px`;
+  scrollTo({ top: target, behavior: "instant" });
 }
 function tickCountdown() {
   const ns = nowService().sec;
@@ -880,7 +907,7 @@ $("#q-live").onclick = () => { S.ui.qTime = hhmm(nowService().sec); save(); rend
 $("#q-when").onclick = () => $("#dlg-when").showModal();
 $("#q-opt").onclick = () => $("#dlg-opt").showModal();
 for (const d of document.querySelectorAll("dialog.dlg")) d.addEventListener("click", e => { if (e.target === d) d.close(); });
-$("#q-go").onclick = () => { liveSnap = nowService(); render(); const r = $("#results"); if (r.firstElementChild) r.scrollIntoView({ behavior: "smooth", block: "start" }); };
+$("#q-go").onclick = () => { liveSnap = nowService(); renderSearch(); runSearch(); };
 $("#q-day").onchange = e => { S.ui.day = e.target.value; save(); render(); };
 $("#tt-grid").onclick = e => {
   const el = e.target.closest(".tt-t"); if (!el) return;
@@ -958,7 +985,7 @@ $("#bk-restore").onclick = () => {
   try {
     const d = JSON.parse($("#bk-text").value);
     if (!d || d.v !== 1 || !d.tt || !d.xf) throw 0;
-    S = d; migrate(); save(); $("#bk-text").value = ""; render(); toast("復元しました");
+    S = d; migrate(); save(); $("#bk-text").value = ""; searched = false; render(); toast("復元しました");
   } catch (e) { toast("このJSONは読み込めません"); }
 };
 /* ===== 時刻表パック ===== */
@@ -996,7 +1023,7 @@ function applyPack(text) {
   if (!done.length) return "取り込める区間がありませんでした。";
   if (d.links) for (const [k, v] of Object.entries(d.links)) if (/^(out|in):(wd|hd)$/.test(k) && Array.isArray(v)) S.links[k] = v;
   normalizeTrains();
-  save(); render();
+  save(); searched = false; render();
   const nl = Object.values(S.links).reduce((a, v) => a + v.length, 0);
   return `${done.length}区間を取り込みました${d.asOf ? `（${esc(d.asOf)}現在のダイヤ）` : ""}。直通の対応は${nl}組です：<br>${done.join("<br>")}`;
 }
@@ -1010,7 +1037,7 @@ $("#pk-apply").onclick = () => { $("#pk-result").innerHTML = applyPack($("#pk-te
 
 $("#bk-reset").onclick = () => {
   $("#bk-confirm").innerHTML = `<div class="confirm">取り込んだ時刻表と実測値がすべて消えます。<button id="bk-reset-yes" class="btn danger small" type="button">消してサンプルに戻す</button><button id="bk-reset-no" class="btn small" type="button">やめる</button></div>`;
-  $("#bk-reset-yes").onclick = () => { const ui = S.ui; S = defaultState(); S.ui = ui; migrate(); save(); $("#bk-confirm").innerHTML = ""; render(); toast("サンプルに戻しました"); };
+  $("#bk-reset-yes").onclick = () => { const ui = S.ui; S = defaultState(); S.ui = ui; migrate(); save(); $("#bk-confirm").innerHTML = ""; searched = false; render(); toast("サンプルに戻しました"); };
   $("#bk-reset-no").onclick = () => $("#bk-confirm").innerHTML = "";
 };
 
