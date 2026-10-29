@@ -147,6 +147,10 @@ table.status tr.sp td { height: 14px; padding: 0; border-bottom: 0; }
 /* 検索の上部：画面の幅いっぱい。寸法は見本（幅737）の画素を --u 単位でそのまま使う */
 .sbox { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--hdr-h, 86px)); z-index: 4; container-type: inline-size; width: 100vw; margin-left: calc(50% - 50vw); margin-top: -16px; background: #F2F2F2; display: flex; flex-direction: column; }
 .rbar { background: var(--rb-bg); }
+/* 試験用：始点・終点の帯を画面の下端に置く */
+#dbg-rb { width: 16px; height: 16px; margin: 0; accent-color: #F2F2F2; opacity: .6; }
+body.rb-bottom .rbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; padding-bottom: env(safe-area-inset-bottom, 0px); border-top: 1.5px solid #F2F2F2; }
+body.rb-bottom main { padding-bottom: var(--rb-h, 0px); }
 #v-search:not([hidden]) { display: flex; flex-direction: column; gap: 16px; }
 .rbar, .sctl { --u: calc(min(100cqw, 600px) / 737); }
 .rbar svg { max-width: 600px; margin: 0 auto; }
@@ -156,7 +160,7 @@ table.status tr.sp td { height: 14px; padding: 0; border-bottom: 0; }
 .spill .lab { flex: none; width: calc(var(--u) * 76); background: #FFC000; display: grid; place-items: center; font-size: calc(var(--u) * 26); font-weight: 700; color: #212B3D; border-right: calc(var(--u) * 3) solid #212B3D; }
 .spill.r .lab { border-right: 0; border-left: calc(var(--u) * 3) solid #212B3D; }
 .spill .nm { flex: 1; min-width: 0; display: grid; place-items: center; font-size: calc(var(--u) * 33); font-weight: 700; color: #212B3D; white-space: nowrap; overflow: hidden; }
-.sswap { flex: none; width: calc(var(--u) * 59); height: calc(var(--u) * 50); padding: 0; border: 0; background: transparent; color: #FFC000; display: grid; place-items: center; }
+.sswap { flex: none; width: calc(var(--u) * 59); height: calc(var(--u) * 50); padding: 0; border: 0; background: transparent; color: #212B3D; display: grid; place-items: center; }
 .sswap svg { display: block; width: calc(var(--u) * 59); height: calc(var(--u) * 48); overflow: visible; }
 .when { position: relative; height: calc(var(--u) * 55); display: flex; align-items: center; justify-content: center; background: #FFFFFF; border: calc(var(--u) * 3) solid #212B3D; border-radius: 999px; color: #212B3D; font-size: calc(var(--u) * 30); padding: 0 calc(var(--u) * 50); white-space: nowrap; }
 .when .num { font-family: var(--font-num); }
@@ -216,6 +220,7 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
   <div class="wrap">
     <div class="brand">
       <h1>通学ダイヤ<small id="brand-route"></small></h1>
+      <input id="dbg-rb" type="checkbox" aria-label="デバッグ">
     </div>
     <nav class="tabs" aria-label="画面">
       <a href="#search" data-view="search">検索</a>
@@ -884,7 +889,7 @@ function render() {
   // 検索画面では上部を見出しのすぐ下に置くので、注意書きはその下へ
   { const ban = $("#sample-banner"), sb = $("#v-search .sbox"); if (view === "search") sb.after(ban); else $("main .wrap").prepend(ban); }
   { const st = baseRoute().stations; $("#brand-route").textContent = `${st[0]} ⇄ ${st[st.length - 1]}`; }
-  if (view === "search") renderSearch();
+  if (view === "search") { setRb(); renderSearch(); }
   if (view === "timetable") renderTimetable();
   if (view === "transfer") renderTransfer();
   if (view === "data") renderData();
@@ -1042,6 +1047,15 @@ $("#bk-reset").onclick = () => {
 /* ===== 起動 ===== */
 // 検索の上部を見出しのすぐ下に固定するため、見出しの高さを CSS に渡す
 const setHdr = () => document.documentElement.style.setProperty("--hdr-h", `${$("header.top").offsetHeight}px`);
+// 試験用：始点・終点の帯を下端に移す
+function setRb() {
+  document.body.classList.toggle("rb-bottom", !!S.ui.rbBottom);
+  $("#dbg-rb").checked = !!S.ui.rbBottom;
+  const h = $(".rbar").offsetHeight;
+  if (h || !S.ui.rbBottom) document.documentElement.style.setProperty("--rb-h", S.ui.rbBottom ? `${h}px` : "0px");
+}
+$("#dbg-rb").onchange = e => { S.ui.rbBottom = e.target.checked; save(); setRb(); };
+addEventListener("resize", () => setRb());
 setHdr(); addEventListener("resize", setHdr);
 fromHash();
 setInterval(() => {
