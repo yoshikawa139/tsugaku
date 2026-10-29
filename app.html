@@ -148,9 +148,20 @@ table.status tr.sp td { height: 14px; padding: 0; border-bottom: 0; }
 .sbox { position: sticky; top: calc(env(safe-area-inset-top, 0px) + var(--hdr-h, 86px)); z-index: 4; container-type: inline-size; width: 100vw; margin-left: calc(50% - 50vw); margin-top: -16px; background: #F2F2F2; display: flex; flex-direction: column; }
 .rbar { background: var(--rb-bg); }
 /* 吹き出し帯は右端に縦に置く（横長の帯をそのまま左回りに90度回し、長さだけ検索帯の下から画面の下端までに合わせる。文字とマークは正立）。乗り換えカードは帯の下に潜る */
-body.rb-side .rbar { position: fixed; z-index: 6; top: calc(var(--side-top, 0px) + var(--side-len, 0px)); left: calc(100% - var(--side-w, 0px)); width: var(--side-len, 0px); transform-origin: 0 0; transform: rotate(-90deg); border-top: 1.5px solid #F2F2F2; }
+body.rb-side .rbar { position: fixed; z-index: 6; top: calc(var(--side-top, 0px) + var(--side-len, 0px)); left: calc(100% - var(--side-w, 0px)); width: var(--side-len, 0px); transform-origin: 0 0; transform: translateX(var(--side-w, 0px)) rotate(-90deg); visibility: hidden; transition: transform .25s ease, visibility 0s .25s; border-top: 1.5px solid #F2F2F2; }
+/* ツールバーの目次ボタンで右端から出し入れする */
+body.rb-side.rb-open .rbar { transform: rotate(-90deg); visibility: visible; transition: transform .25s ease; }
+@media (prefers-reduced-motion: reduce) { body.rb-side .rbar, body.rb-side.rb-open .rbar { transition: none; } }
 body.rb-side .rbar svg { max-width: none; touch-action: none; }
-body.rb-side #sample-banner { margin-right: var(--side-w, 0px); }
+body.rb-side.rb-open #sample-banner { margin-right: var(--side-w, 0px); }
+/* 画面下のツールバー（検索画面だけ） */
+.tbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 7; display: flex; background: var(--surface); border-top: 1.5px solid #F2F2F2; padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+.tbar button { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 0 8px; background: none; border: 0; color: var(--ink); font: inherit; font-size: 11px; line-height: 1.2; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
+.tbar button:active { background: rgba(127,127,127,.15); }
+.tbar svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; overflow: visible; }
+.tbar svg * { vector-effect: non-scaling-stroke; }
+.tbar button[aria-pressed="true"] { color: var(--sel); }
+main { padding-bottom: var(--tb-h, 0px); }
 #v-search:not([hidden]) { display: flex; flex-direction: column; gap: 16px; }
 .rbar, .sctl { --u: calc(min(100cqw, 600px) / 737); }
 .rbar svg { max-width: 600px; margin: 0 auto; }
@@ -345,6 +356,13 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
     </section>
   </div>
 </main>
+<nav id="tbar" class="tbar" aria-label="ツールバー" hidden>
+  <button id="tb-mark" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.5 H17.5 V20.5 L12 16.5 L6.5 20.5 Z"/></svg><span>ブックマーク</span></button>
+  <button id="tb-home" type="button"><svg viewBox="103.5 116.5 35 31.5" aria-hidden="true"><path d="M105,134 L121,118.7 L137.25,134 L133.5,136.3 L121,123.2 L108.75,136.3 Z"/><path d="M109.5,135.8 V146.2 H118.6 V136.8 H123.6 V146.2 H132.8 V135.8"/></svg><span>帰り</span></button>
+  <button id="tb-now" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7 V12 L15.5 14"/></svg><span>現在時刻</span></button>
+  <button id="tb-school" type="button"><svg viewBox="693.5 107.5 47.5 40.5" aria-hidden="true"><path d="M695,146.25 H739.4 V126.4 H724.4 V110.5 H709.4 V126.4 H695 Z M712.5,130.9 H721.3 M712.5,146.25 V139 A4.4,4.4 0 0 1 721.3,139 V146.25"/><circle cx="716.9" cy="118.2" r="3"/></svg><span>行き</span></button>
+  <button id="tb-map" type="button" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 6 H20 M8.5 12 H20 M8.5 18 H20"/><circle cx="4.5" cy="6" r=".6"/><circle cx="4.5" cy="12" r=".6"/><circle cx="4.5" cy="18" r=".6"/></svg><span>経路図</span></button>
+</nav>
 
 <div id="toast" class="toast" hidden></div>
 
@@ -724,10 +742,11 @@ $("#q-svg").addEventListener("keydown", e => {
 $("#q-svg").addEventListener("click", e => {
   const b = e.target.closest(".rb-btn"); if (!b) return;
   const n = baseRoute().stations.length;
-  if (b.id === "q-home") qSel = { l: 0, r: n - 1, dir: "in", n };
-  if (b.id === "q-school") qSel = { l: 0, r: n - 1, dir: "out", n };
-  renderSearch();
+  if (b.id === "q-home") setWhole("in");
+  if (b.id === "q-school") setWhole("out");
 });
+// 始点と終点を経路の両端にする（in＝大学→家、out＝家→大学）
+function setWhole(dir) { const n = baseRoute().stations.length; qSel = { l: 0, r: n - 1, dir, n }; renderSearch(); }
 if (document.fonts) document.fonts.ready.then(() => updateMap());
 
 function renderSearch() {
@@ -918,6 +937,7 @@ function render() {
   // 検索画面では上部を見出しのすぐ下に置くので、注意書きはその下へ
   { const ban = $("#sample-banner"), sb = $("#v-search .sbox"); if (view === "search") sb.after(ban); else $("main .wrap").prepend(ban); }
   { const st = baseRoute().stations; $("#brand-route").textContent = `${st[0]} ⇄ ${st[st.length - 1]}`; }
+  $("#tbar").hidden = view !== "search";
   setRb();
   if (view === "search") renderSearch();
   if (view === "timetable") renderTimetable();
@@ -936,6 +956,11 @@ $("#mode-dep").onclick = () => { S.ui.mode = "dep"; save(); render(); };
 $("#mode-arr").onclick = () => { S.ui.mode = "arr"; if (!S.ui.qTime) S.ui.qTime = qSel.dir === "out" ? "08:30" : "18:00"; save(); render(); };
 $("#q-time").onchange = e => { S.ui.qTime = e.target.value || null; save(); render(); };
 $("#q-now").onclick = () => { S.ui.qTime = null; S.ui.mode = "dep"; liveSnap = nowService(); save(); render(); };
+// ツールバー：栞はまだ何もしない。家・時計・大学は既存の操作の近道、目次は吹き出し帯の出し入れ
+$("#tb-home").onclick = () => setWhole("in");
+$("#tb-now").onclick = () => $("#q-now").onclick();
+$("#tb-school").onclick = () => setWhole("out");
+$("#tb-map").onclick = () => { S.ui.rbOpen = !S.ui.rbOpen; save(); setRb(); };
 $("#q-live").onclick = () => { S.ui.qTime = hhmm(nowService().sec); save(); render(); $("#q-time").focus(); };
 $("#q-when").onclick = () => $("#dlg-when").showModal();
 $("#q-opt").onclick = () => $("#dlg-opt").showModal();
@@ -1081,13 +1106,16 @@ const setHdr = () => document.documentElement.style.setProperty("--hdr-h", `${$(
 function setRb() {
   const root = document.documentElement.style;
   document.body.classList.add("rb-side");
-  const sh = $(".sctl").offsetHeight;
+  document.body.classList.toggle("rb-open", !!S.ui.rbOpen);
+  $("#tb-map").setAttribute("aria-pressed", !!S.ui.rbOpen);
+  const sh = $(".sctl").offsetHeight, tb = $("#tbar").offsetHeight;
+  root.setProperty("--tb-h", `${tb}px`);
   // 太さは横長の帯と同じ縮尺のまま、長さを検索帯の下から画面の下端までに伸ばす
   let W = RB.W;
   if (sh) {
     const top = $("header.top").getBoundingClientRect().bottom + sh;
     const scale = Math.min(document.documentElement.clientWidth, 600) / 737;
-    const len = Math.max(200, innerHeight - top);
+    const len = Math.max(200, innerHeight - top - tb);
     W = len / scale;
     root.setProperty("--side-top", `${top}px`); root.setProperty("--side-len", `${len}px`); root.setProperty("--side-w", `${110 * scale + 1.5}px`);
   }
