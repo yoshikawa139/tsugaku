@@ -164,6 +164,9 @@ body.rb-side.rb-open #sample-banner { margin-right: var(--side-w, 0px); }
 .tbar svg * { vector-effect: non-scaling-stroke; }
 /* 家・大学は経路図のマークと同じ形（線の太さは他のマークに合わせる） */
 .tbar svg.mapico { stroke-linejoin: miter; stroke-linecap: butt; }
+/* 線の太さ：家・大学は経路図と同じ細さ、他の3つも同じくらい（約1px）に合わせる */
+.tbar svg.mapico * { vector-effect: none; stroke-width: 1.5; }
+.tbar svg:not(.mapico) * { stroke-width: 1px; }
 
 .tbar button[aria-pressed="true"] { color: var(--sel); }
 main { padding-bottom: var(--tb-h, 0px); }
@@ -180,6 +183,13 @@ main { padding-bottom: var(--tb-h, 0px); }
 .sswap svg { display: block; width: calc(var(--u) * 59); height: calc(var(--u) * 48); overflow: visible; }
 .when { position: relative; height: calc(var(--u) * 55); display: flex; align-items: center; justify-content: center; background: #FFFFFF; border: calc(var(--u) * 3) solid #212B3D; border-radius: 999px; color: #212B3D; font-size: calc(var(--u) * 30); padding: 0 calc(var(--u) * 50); white-space: nowrap; }
 .when .num { font-family: var(--font-num); }
+/* 曜日と出発/到着は、始点・終点の枠と同じ IBM Plex Sans JP（太さ500）。日付と時刻の数字は IBM Plex Mono */
+.when #q-when-date, .when #q-when-mode, .when #q-when-day { font-family: var(--font-body); font-weight: 500; }
+.when #q-when-date .num, .when #q-when-time .num { font-family: var(--font-num); font-weight: 400; }
+/* 文字の見た目の中心を枠の中心にそろえる（この書体は字面が行の中心より上に出るため、測った分だけ下げる） */
+.spill .lab > span, .when #q-when-mode > span { display: inline-block; }
+.spill .lab > span { transform: translateY(.118em); }
+.when #q-when-mode > span { transform: translateY(.082em); }
 .when .chev { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: calc(var(--u) * 61); height: calc(var(--u) * 55); padding: 0; border: 0; background: transparent; color: inherit; }
 /* 日付・時刻は端末の選択画面を直接開く（透明な入力欄を文字の上に重ねる）。出発／到着は押すたびに切り替え */
 .when .wpart { position: relative; display: inline-flex; align-items: center; height: 100%; }
@@ -269,9 +279,9 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
         </div>
         <div class="sctl">
           <div class="spills">
-            <div class="spill"><span class="lab">始点</span><span id="q-from" class="nm"></span></div>
+            <div class="spill"><span class="lab"><span>始点</span></span><span id="q-from" class="nm"></span></div>
             <button id="q-swap" class="sswap" type="button" aria-label="始点と終点を入れ替える"><svg viewBox="327 20 59 48" aria-hidden="true"><path d="M386,33.5 H328.5 M339,23 L328,33.5 L339,44 M327,54.5 H384.5 M374,44 L385,54.5 L374,65" fill="none" stroke="currentColor" stroke-width="3.6"/></svg></button>
-            <div class="spill r"><span id="q-to" class="nm"></span><span class="lab">終点</span></div>
+            <div class="spill r"><span id="q-to" class="nm"></span><span class="lab"><span>終点</span></span></div>
           </div>
           <div id="q-when" class="when" role="group" aria-label="日時">
             <span class="wpart"><span id="q-when-date"></span><input id="q-date-in" type="date" aria-label="日付を選ぶ"></span>
@@ -804,7 +814,7 @@ function renderSearch() {
   const dt = searchDate(), wk = "日月火水木金土"[dt.getDay()];
   $("#q-when-date").innerHTML = `<span class="num">${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()}</span>(${wk})`;
   $("#q-when-time").innerHTML = live ? "現在時刻" : `<span class="num">${hm(qSec)}</span>`;
-  $("#q-when-mode").textContent = S.ui.mode === "dep" ? "出発" : "到着";
+  $("#q-when-mode").innerHTML = `<span>${S.ui.mode === "dep" ? "出発" : "到着"}</span>`;
   $("#q-when-day").textContent = S.ui.day === "auto" ? "" : `・${day === "wd" ? "平日" : "土休日"}`;
   $("#q-date-in").value = ymd(dt);
   $("#q-time-in").value = live ? hhmm(ns.sec % 86400) : S.ui.qTime;
