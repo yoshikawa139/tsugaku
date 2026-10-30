@@ -183,12 +183,12 @@ main { padding-bottom: var(--tb-h, 0px); }
 .when { position: relative; height: calc(var(--u) * 55); display: flex; align-items: center; justify-content: center; background: #FFFFFF; border: calc(var(--u) * 3) solid #212B3D; border-radius: 999px; color: #212B3D; font-size: calc(var(--u) * 30); padding: 0 calc(var(--u) * 50); white-space: nowrap; }
 .when .num { font-family: var(--font-num); }
 /* 曜日と出発/到着は、始点・終点の枠と同じ IBM Plex Sans JP（太さ500）。日付と時刻の数字は IBM Plex Mono */
-.when #q-when-date, .when #q-when-mode, .when #q-when-day { font-family: var(--font-body); font-weight: 500; }
+.when #q-when-date, .when #q-when-time, .when #q-when-mode, .when #q-when-day { font-family: var(--font-body); font-weight: 500; }
 .when #q-when-date .num, .when #q-when-time .num { font-family: var(--font-num); font-weight: 400; }
 /* 文字の見た目の中心を枠の中心にそろえる（この書体は字面が行の中心より上に出るため、測った分だけ下げる） */
-.spill .lab > span, .when #q-when-mode > span { display: inline-block; }
+.spill .lab > span, .when #q-when-mode > span, .when .wlive { display: inline-block; }
 .spill .lab > span { transform: translateY(.118em); }
-.when #q-when-mode > span { transform: translateY(.082em); }
+.when #q-when-mode > span, .when .wlive { transform: translateY(.082em); }
 .when .chev { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: calc(var(--u) * 61); height: calc(var(--u) * 55); padding: 0; border: 0; background: transparent; color: inherit; }
 /* 日付・時刻は端末の選択画面を直接開く（透明な入力欄を文字の上に重ねる）。出発／到着は押すたびに切り替え */
 .when .wpart { position: relative; display: inline-flex; align-items: center; height: 100%; }
@@ -811,7 +811,7 @@ function renderSearch() {
   const day = currentDay();
   const dt = searchDate(), wk = "日月火水木金土"[dt.getDay()];
   $("#q-when-date").innerHTML = `<span class="num">${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()}</span>(${wk})`;
-  $("#q-when-time").innerHTML = live ? "現在時刻" : `<span class="num">${hm(qSec)}</span>`;
+  $("#q-when-time").innerHTML = live ? `<span class="wlive">現在時刻</span>` : `<span class="num">${hm(qSec)}</span>`;
   $("#q-when-mode").innerHTML = `<span>${S.ui.mode === "dep" ? "出発" : "到着"}</span>`;
   $("#q-when-day").textContent = S.ui.day === "auto" ? "" : `・${day === "wd" ? "平日" : "土休日"}`;
   $("#q-date-in").value = ymd(dt);
