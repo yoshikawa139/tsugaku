@@ -179,9 +179,6 @@ main { padding-bottom: var(--tb-h, 0px); }
 .sswap svg { display: block; width: calc(var(--u) * 59); height: calc(var(--u) * 48); overflow: visible; }
 .when { position: relative; height: calc(var(--u) * 55); display: flex; align-items: center; justify-content: center; background: #FFFFFF; border: calc(var(--u) * 3) solid #212B3D; border-radius: 999px; color: #212B3D; font-size: calc(var(--u) * 30); padding: 0 calc(var(--u) * 50); white-space: nowrap; }
 .when .num { font-family: var(--font-num); }
-/* 日付の曜日・時刻・出発/到着は、始点・終点の枠と同じ IBM Plex Sans JP（太さ500）。日付の数字だけ等幅 */
-.when #q-when-date, .when #q-when-time, .when #q-when-time .num, .when #q-when-mode, .when #q-when-day { font-family: var(--font-body); font-weight: 500; }
-.when #q-when-date .num { font-family: var(--font-num); }
 .when .chev { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: calc(var(--u) * 61); height: calc(var(--u) * 55); padding: 0; border: 0; background: transparent; color: inherit; }
 /* 日付・時刻は端末の選択画面を直接開く（透明な入力欄を文字の上に重ねる）。出発／到着は押すたびに切り替え */
 .when .wpart { position: relative; display: inline-flex; align-items: center; height: 100%; }
@@ -224,12 +221,6 @@ circle.rb-icon { stroke-width: 1.4; }
 .rb-bub.drag .rb-bub-box { stroke: var(--sel); }
 .rb-bub-text { font-size: 19px; font-weight: 700; fill: var(--rb-ink); text-anchor: middle; dominant-baseline: central; }
 .rb-bub.drag .rb-bub-text { fill: var(--sel); }
-/* 始点の吹き出しは緑、終点の吹き出しは赤（検索ボタンと同じ色）。文字は白 */
-.rb-bub.is-from .rb-bub-box { fill: #2E9E5B; stroke: #2E9E5B; }
-.rb-bub.is-to .rb-bub-box { fill: #FF666C; stroke: #FF666C; }
-.rb-bub.is-from .rb-bub-text, .rb-bub.is-to .rb-bub-text { fill: #FFFFFF; }
-.rb-bub.is-from.drag .rb-bub-box, .rb-bub.is-to.drag .rb-bub-box { stroke: var(--sel); }
-.rb-bub.is-from.drag .rb-bub-text, .rb-bub.is-to.drag .rb-bub-text { fill: #FFFFFF; }
 .live-chip { min-width: 7.5em; text-align: left; cursor: pointer; background: var(--bg); border: 1px solid var(--rule); border-radius: 8px; padding: 7px 9px; font-size: 15px; color: var(--ink); }
 .pill { display: flex; align-items: center; gap: 12px; background: var(--bg); border: 1.5px solid var(--rule); border-radius: 999px; padding: 7px 18px 7px 8px; }
 .pill-name { font-size: 20px; font-weight: 500; letter-spacing: .02em; }
@@ -715,10 +706,7 @@ function updateMap(drag) {
   }
   const mid = (bx.l.x0 + bx.l.w + bx.r.x0) / 2;
   for (const side of ["l", "r"]) {
-    const { g, i, t, n, ch, step, w, x0 } = bx[side];
-    const isFrom = (side === "l") === (qSel.dir === "out");
-    g.classList.toggle("is-from", isFrom); g.classList.toggle("is-to", !isFrom);
-    const x1 = x0 + w, y0 = RB.bubY, y1 = RB.bubY + RB.bubH, rr = 6;
+    const { g, i, t, n, ch, step, w, x0 } = bx[side], x1 = x0 + w, y0 = RB.bubY, y1 = RB.bubY + RB.bubH, rr = 6;
     let tail;
     if (x0 === L && n < x0 + w / 2) tail = [[x0 + 9.5, y0], [x0 + 9.5, y0 - 7.5], [x0 + 25.5, y0]];          // 左端（見本の形）
     else if (x1 === Rt && n > x0 + w / 2) tail = [[x1 - 44.5, y0], [x1 - 11.5, y0 - 11], [x1 - 18, y0]];     // 右端（見本の形）
