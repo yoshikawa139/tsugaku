@@ -189,13 +189,14 @@ main { padding-bottom: var(--tb-h, 0px); }
 /* 文字の見た目の中心を枠の中心にそろえる（この書体は字面が行の中心より上に出るため、測った分だけ下げる） */
 .spill .lab > span, .when #q-when-mode > span, .when .wlive { display: inline-block; }
 .spill .lab > span { transform: translateY(.118em); }
-.when #q-when-mode > span, .when .wlive { transform: translateY(.082em); }
+/* 日付・時刻・出発/到着は1本の行に並べて同じベースラインにそろえ（曜日と出発、日付と時刻の数字が同じ高さになる）、行全体を枠の中心へ下げる */
+.when .wrow { display: inline-block; line-height: calc(var(--u) * 49); transform: translateY(.082em); }
 .when .chev { position: absolute; right: 0; top: 50%; transform: translateY(-50%); display: grid; place-items: center; width: calc(var(--u) * 61); height: calc(var(--u) * 55); padding: 0; border: 0; background: transparent; color: inherit; }
 /* 日付・時刻は端末の選択画面を直接開く（透明な入力欄を文字の上に重ねる）。出発／到着は押すたびに切り替え */
-.when .wpart { position: relative; display: inline-flex; align-items: center; height: 100%; }
+.when .wpart { position: relative; display: inline-block; }
 .when .wpart + .wpart, .when .wmode { margin-left: 1em; }
 .when .wpart input { position: absolute; inset: 0 -.3em; width: calc(100% + .6em); height: 100%; opacity: 0; border: 0; padding: 0; margin: 0; font-size: 16px; -webkit-appearance: none; appearance: none; }
-.when .wmode { height: 100%; padding: 0 .3em; margin-right: -.3em; border: 0; background: transparent; color: inherit; font: inherit; }
+.when .wmode { padding: 0 .3em; margin-right: -.3em; border: 0; background: transparent; color: inherit; font: inherit; }
 .when .wmode + span { margin-left: -.3em; }
 .when button:active, .when .wpart:active { background: rgba(0,0,0,.08); }
 .when .chev svg { width: calc(var(--u) * 21); height: calc(var(--u) * 13); }
@@ -284,9 +285,7 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
             <div class="spill r"><span id="q-to" class="nm"></span><span class="lab"><span>終点</span></span></div>
           </div>
           <div id="q-when" class="when" role="group" aria-label="日時">
-            <span class="wpart"><span id="q-when-date"></span><input id="q-date-in" type="date" aria-label="日付を選ぶ"></span>
-            <span class="wpart"><span id="q-when-time"></span><input id="q-time-in" type="time" aria-label="時刻を選ぶ"></span>
-            <button id="q-when-mode" class="wmode" type="button" aria-label="出発と到着を切り替える"></button><span id="q-when-day"></span>
+            <span class="wrow"><span class="wpart"><span id="q-when-date"></span><input id="q-date-in" type="date" aria-label="日付を選ぶ"></span><span class="wpart"><span id="q-when-time"></span><input id="q-time-in" type="time" aria-label="時刻を選ぶ"></span><button id="q-when-mode" class="wmode" type="button" aria-label="出発と到着を切り替える"></button><span id="q-when-day"></span></span>
             <button id="q-when-open" class="chev" type="button" aria-label="日時の設定を開く"><svg viewBox="0 0 21 13" aria-hidden="true"><path d="M1.2,1.2 L10.5,11.4 L19.8,1.2" fill="none" stroke="currentColor" stroke-width="3.2"/></svg></button>
           </div>
           <div class="gowrap">
