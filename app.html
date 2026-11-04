@@ -15,6 +15,7 @@
   --go: #E8683D;
   --sel: #C98F00;
   --sel-ink: #FFFFFF;
+  --none: #4A5260;
   --rb-bg: #E6EBF2; --rb-ink: #2B3445; --rb-icon: #3B4352; --rb-dot: #6B7484; --rb-lab-ink: #FFFFFF;
   --warn: #B45309;
   --warn-bg: #FEF3C7;
@@ -27,12 +28,14 @@
   --bg: #0E1217; --surface: #171C23; --ink: #E7ECF2; --muted: #96A1AF; --rule: #2A323C;
   --accent: #7AA2FF; --accent-ink: #0E1217; --warn: #FBBF24; --warn-bg: #3A2C0B; --ok: #34D399; --bad: #F87171;
   --sel: #FFC000; --sel-ink: #212B3D;
+  --none: #69727F;
   --rb-bg: #212B3D; --rb-ink: #E8E8E8; --rb-icon: #D0D1D4; --rb-dot: #D1D1D1; --rb-lab-ink: #212B3D;
   color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #0E1217; --surface: #171C23; --ink: #E7ECF2; --muted: #96A1AF; --rule: #2A323C;
   --accent: #7AA2FF; --accent-ink: #0E1217; --warn: #FBBF24; --warn-bg: #3A2C0B; --ok: #34D399; --bad: #F87171;
   --sel: #FFC000; --sel-ink: #212B3D;
+  --none: #69727F;
   --rb-bg: #212B3D; --rb-ink: #E8E8E8; --rb-icon: #D0D1D4; --rb-dot: #D1D1D1; --rb-lab-ink: #212B3D;
   color-scheme: dark }
 
@@ -267,6 +270,7 @@ circle.rb-icon { stroke-width: 1.4; }
 .alt-list .pair i { width: 1px; height: 11px; background: var(--rule); margin: 0 8px; align-self: center; }
 .alt-list .sl { font-size: 12px; font-weight: 700; }
 .alt-list .sl .num { font-family: var(--font-num); }
+.alt-list .sl.none { color: var(--none); }
 #tt-tip { position: absolute; z-index: 50; background: #fff; color: #111; font-size: 11px; line-height: 1.4; padding: 3px 7px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.25); white-space: nowrap; pointer-events: none; font-variant-numeric: tabular-nums; }
 table.status { border-collapse: collapse; width: 100%; table-layout: fixed; font-size: 14px; }
 table.status th { text-align: left; font-weight: 500; font-size: 12px; color: var(--muted); padding: 6px 4px; border-bottom: 1px solid var(--rule); }
@@ -946,21 +950,30 @@ let lastRes = null;
 const ALT_ICON = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 3.5 2.5 6.5 5.5 9.5"/><path d="M2.8 6.5H10a3.5 3.5 0 0 1 0 7H7"/></svg>`;
 function openAlt(idx, k) {
   const { list, alts, xf, A, dir } = lastRes, card = list[idx], { stations, lines } = route(dir), ln = lines[A + k];
-  const rows = alts[idx][k].map(c => {
+  // 一覧は出発の早い順（集めたときは新しい順）
+  const rows = alts[idx][k].slice().reverse().map(c => {
     const t = c[k].trip, j = c.findIndex((e, i) => i > k && !e.through);
     return { t, j, span: j < 0 ? null : c[j].trip.d - c[j - 1].trip.a, ar: j < 0 ? 0 : c[j - 1].trip.a, dp: j < 0 ? 0 : c[j].trip.d };
   });
   const sign = d => `${d < 0 ? "−" : "+"}<span class="num">${ms(Math.abs(d))}</span>`;
+  const slStyle = sl => `color:${sl < 60 ? "var(--bad)" : sl < 180 ? "var(--warn)" : "var(--ok)"}`;
+  const pair = (j, ar, dp) => `<div class="xf"><span class="xst">${stations[A + j]}</span><span class="pair"><b class="num">${hm(ar)}</b>着<i></i><b class="num">${hm(dp)}</b>発</span></div>`;
+  // 一番下はカードの列車。一覧の列車が乗り換える駅をカードが直通で通るときは、その駅で「乗換なし」
+  const ct = card[k].trip, cj = card.findIndex((e, i) => i > k && !e.through), aj = Math.min(...rows.map(r => r.j).filter(j => j >= 0));
+  let cardXf = "";
+  if (isFinite(aj) && (cj < 0 || aj < cj)) cardXf = `${pair(aj, card[aj - 1].trip.a, card[aj].trip.d)}<span class="sl none">乗換なし</span>`;
+  else if (cj >= 0) cardXf = `${pair(cj, card[cj - 1].trip.a, card[cj].trip.d)}<span class="sl" style="${slStyle(card[cj].slack)}">余裕 <span class="num">${ms(card[cj].slack)}</span></span>`;
+  const cardRow = `<li><div class="dep num">${hm(ct.d)}</div><div class="rt"><span class="kind">${esc(ct.t)}${ct.to ? ` ${esc(ct.to)}行` : ""}</span>${cardXf}</div></li>`;
   const items = rows.map(r => {
     let xfRow = "";
     if (r.j >= 0) {
-      const sl = r.span - xf[r.j - 1], top = rows.find(x => x.j === r.j);
+      const sl = r.span - xf[r.j - 1], top = rows.findLast(x => x.j === r.j);
       const ref = !card[r.j].through ? card[r.j].trip.d - card[r.j - 1].trip.a : top === r ? null : top.span;
-      xfRow = `<div class="xf"><span class="xst">${stations[A + r.j]}</span><span class="pair"><b class="num">${hm(r.ar)}</b>着<i></i><b class="num">${hm(r.dp)}</b>発</span></div>
-        <span class="sl" style="color:${sl < 60 ? "var(--bad)" : sl < 180 ? "var(--warn)" : "var(--ok)"}">余裕 <span class="num">${ms(sl)}</span>${ref === null ? "" : ` (${sign(r.span - ref)})`}</span>`;
+      xfRow = `${pair(r.j, r.ar, r.dp)}
+        <span class="sl" style="${slStyle(sl)}">余裕 <span class="num">${ms(sl)}</span>${ref === null ? "" : ` (${sign(r.span - ref)})`}</span>`;
     }
     return `<li><div class="dep num">${hm(r.t.d)}</div><div class="rt"><span class="kind">${esc(r.t.t)}${r.t.to ? ` ${esc(r.t.to)}行` : ""}</span>${xfRow}</div></li>`;
-  }).join("");
+  }).join("") + cardRow;
   $("#alt-body").innerHTML = `<h2 class="alt-h" style="--c:${ln.color}"><span class="k">同着情報</span><span class="st">${stations[A + k]}</span><span class="ln"><i></i>${ln.name}</span></h2>
     <ul class="alt-list">${items}</ul>`;
   $("#dlg-alt").showModal();
