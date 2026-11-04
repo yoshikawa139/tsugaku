@@ -54,7 +54,7 @@ header.top .wrap { display: flex; flex-direction: column; gap: 8px; padding-bloc
 .seg button { border: 0; background: transparent; padding: 6px 12px; font-size: 13px; color: var(--muted); }
 .seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); font-weight: 700; }
 nav.tabs { display: flex; gap: 2px; overflow-x: auto; }
-nav.tabs a { flex: 1 0 auto; text-align: center; text-decoration: none; color: var(--muted); padding: 8px 10px 9px; font-size: 13px; border-bottom: 3px solid transparent; white-space: nowrap; }
+nav.tabs a { flex: 1 0 auto; text-align: center; text-decoration: none; color: var(--muted); box-sizing: border-box; height: 32px; padding: 2.5px 10px 0; line-height: 29.5px; font-size: 13px; white-space: nowrap; }
 nav.tabs a[aria-current="page"] { color: #212B3D; background: #F2F2F2; font-weight: 700; border-radius: 4px 4px 0 0; }
 
 main .wrap { padding-block: 16px 120px; display: flex; flex-direction: column; gap: 16px; }
@@ -245,6 +245,28 @@ circle.rb-icon { stroke-width: 1.4; }
 .dlg-in { display: flex; flex-direction: column; gap: 14px; padding: 18px; }
 .dlg-in h2 { margin: 0; font-size: 16px; }
 .dlg-act { display: flex; justify-content: flex-end; }
+/* 同着：カードの駅のボタンと、押すと開く一覧 */
+.stop .nrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.alt-b { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 9px 0 7px; border-radius: 12px; border: 1px solid var(--accent); background: transparent; color: var(--accent); font: 500 12px/1 var(--font-body); white-space: nowrap; cursor: pointer; }
+.alt-b svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+#dlg-alt .dlg-in { gap: 12px; }
+.alt-h { display: flex; flex-direction: column; gap: 2px; line-height: 1.4; padding-bottom: 8px; border-bottom: 3px solid var(--c); }
+.alt-h .k { font-size: 11px; font-weight: 700; letter-spacing: .18em; color: var(--muted); }
+.alt-h .st { font-size: 24px; font-weight: 700; letter-spacing: .06em; line-height: 1.25; }
+.alt-h .ln { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--muted); margin-top: 2px; }
+.alt-h .ln i { width: 10px; height: 10px; border-radius: 2px; background: var(--c); }
+.alt-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.alt-list li { padding: 10px 0; border-bottom: 1px solid var(--rule); display: flex; align-items: flex-start; gap: 12px; }
+.alt-list .dep { font: 600 22px/1.15 var(--font-num); min-width: 66px; }
+.alt-list .rt { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.alt-list .kind { font-size: 13px; line-height: 1.3; padding-top: 2px; }
+.alt-list .xf { display: flex; align-items: baseline; gap: 10px; font-size: 12px; color: var(--muted); }
+.alt-list .xst { color: var(--ink); font-weight: 700; font-size: 12.5px; }
+.alt-list .pair { display: inline-flex; align-items: baseline; gap: 2px; }
+.alt-list .pair b { font: 600 14px var(--font-num); color: var(--ink); margin-left: 2px; }
+.alt-list .pair i { width: 1px; height: 11px; background: var(--rule); margin: 0 8px; align-self: center; }
+.alt-list .sl { font-size: 12px; font-weight: 700; }
+.alt-list .sl .num { font-family: var(--font-num); }
 #tt-tip { position: absolute; z-index: 50; background: #fff; color: #111; font-size: 11px; line-height: 1.4; padding: 3px 7px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.25); white-space: nowrap; pointer-events: none; font-variant-numeric: tabular-nums; }
 table.status { border-collapse: collapse; width: 100%; table-layout: fixed; font-size: 14px; }
 table.status th { text-align: left; font-weight: 500; font-size: 12px; color: var(--muted); padding: 6px 4px; border-bottom: 1px solid var(--rule); }
@@ -321,6 +343,9 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
           <p class="hint">外すと「急ぎ」の乗換時間で検索します。</p>
           <div class="dlg-act"><button class="btn primary" value="ok">閉じる</button></div>
         </form>
+      </dialog>
+      <dialog id="dlg-alt" class="dlg">
+        <form method="dialog" class="dlg-in"><div id="alt-body"></div><div class="dlg-act"><button class="btn primary" value="ok">閉じる</button></div></form>
       </dialog>
       <div id="results" style="display:flex;flex-direction:column;gap:10px"></div><div id="results-pad" aria-hidden="true"></div>
     </section>
@@ -581,10 +606,40 @@ function search(dir, date, mode, qSec, hurry, a = 0, b = legCount()) {
   for (let i = opts.length - 1; i >= 0; i--) { const a = opts[i][opts[i].length - 1].trip.a; if (a < minArr) { keep.unshift(opts[i]); minArr = a; } }
   // 基準時刻の前の3案と後の3案を、出発の早い順に並べる。lead は開いて先頭に出す案
   // 出発指定は基準時刻以降に出る最初の案、到着指定は基準時刻までに着く最後の案
-  if (mode === "dep") { const i = keep.findIndex(c => c[0].trip.d >= qSec), k = i < 0 ? keep.length : i; const prev = keep.slice(Math.max(0, k - 3), k); return { list: [...prev, ...keep.slice(k, k + 3)], lead: prev.length, xf }; }
+  if (mode === "dep") { const i = keep.findIndex(c => c[0].trip.d >= qSec), k = i < 0 ? keep.length : i; const prev = keep.slice(Math.max(0, k - 3), k); return { list: [...prev, ...keep.slice(k, k + 3)], lead: prev.length, xf, built }; }
   const i = keep.findIndex(c => c[c.length - 1].trip.a > qSec), k = i < 0 ? keep.length : i;
   const prev = keep.slice(Math.max(0, k - 3), k);
-  return { list: [...prev, ...keep.slice(k, k + 3)], lead: prev.length - 1, xf };
+  return { list: [...prev, ...keep.slice(k, k + 3)], lead: prev.length - 1, xf, built };
+}
+
+// 駅ごとに「その駅を前の列車で出ても同じ時刻に着く」経路を新しい順に集める（乗換は急ぎの時間で判定）。
+// その駅より手前は間に合う一番遅い列車、先は一番早く着く列車でつなぐ。直通で乗ったまま通る駅は対象外
+function sameArrivals({ legs, from }, xh, chain) {
+  const arr = chain[chain.length - 1].trip.a;
+  const fwd = (k, t) => runFrom({ legs: legs.slice(k), from: from.slice(k) }, xh.slice(k), t);
+  const back = (k, t) => {
+    const pre = []; let nx = t;
+    for (let i = k - 1; i >= 0; i--) {
+      const id = from[i].get(nx.id), c = (id && legs[i].find(x => x.id === id)) || legs[i].filter(x => x.a + xh[i] <= nx.d).pop();
+      if (!c) return null;
+      pre.unshift(c); nx = c;
+    }
+    return pre;
+  };
+  return chain.map((e, k) => {
+    const got = [];
+    if (k > 0 && e.through) return got;
+    for (const t of legs[k].filter(t => t.d < e.trip.d && t.d >= e.trip.d - 3600).reverse()) {
+      const f = fwd(k, t), pre = back(k, t);
+      if (!f || !pre) break;
+      const a = f[f.length - 1].trip.a;
+      if (a < arr) break;
+      if (a > arr) continue;
+      const trips = [...pre, ...f.map(x => x.trip)];
+      got.push(trips.map((trip, i) => ({ trip, through: i > 0 && !!trip.id && from[i - 1].get(trip.id) === trips[i - 1].id })));
+    }
+    return got;
+  });
 }
 
 /* ===== 描画 ===== */
@@ -834,6 +889,13 @@ function runSearch() {
   if (!r.list.length) { box.innerHTML = `<div class="panel empty">条件に合う経路がありません。時刻を変えてみてください。</div>`; return; }
   // 開いておくカード：出発指定なら基準時刻後の最初、到着指定なら間に合う最後
   const best = r.lead;
+  const xh = transferSecs(dir, true).slice(A, B - 1);
+  lastRes = { ...r, alts: r.list.map(c => sameArrivals(r.built, xh, c)), A, B, dir };
+  // 同着の経路がある駅には、いちばん近い列車の時刻を書いたボタンを付ける
+  const nameRow = (idx, i, name) => {
+    const g = lastRes.alts[idx][i];
+    return g.length ? `<div class="nrow"><div class="name">${name}</div><button type="button" class="alt-b" data-alt="${idx}:${i}">${ALT_ICON}<span>${hm(g[0][i].trip.d)}発も同着</span></button></div>` : `<div class="name">${name}</div>`;
+  };
   box.innerHTML = r.list.map((chain, idx) => {
     const first = chain[0].trip, last = chain[chain.length - 1].trip;
     const minSlack = Math.min(...chain.slice(1).filter(e => !e.through).map(e => e.slack));
@@ -843,13 +905,13 @@ function runSearch() {
     let tl = "";
     chain.forEach((e, i) => {
       const t = e.trip, ln = lines[A + i];
-      if (i === 0) tl += `<div class="stop"><div class="t num">${hm(t.d)}</div><div class="dot"></div><div><div class="name">${stations[A]}</div></div></div>`;
+      if (i === 0) tl += `<div class="stop"><div class="t num">${hm(t.d)}</div><div class="dot"></div><div>${nameRow(idx, 0, stations[A])}</div></div>`;
       else {
         const prev = chain[i - 1].trip;
         const xfInfo = e.through
           ? `<div class="xf">直通・そのまま乗車</div>`
-          : `<div class="xf">乗換 ${ms(t.d - prev.a)} ・ <span class="slack" style="color:${e.slack < 60 ? "var(--bad)" : e.slack < 180 ? "var(--warn)" : "var(--ok)"}">余裕 ${ms(e.slack)}</span></div>`;
-        tl += `<div class="stop"><div class="t num">${e.through ? hm(t.d) : `${hm(prev.a)}<small>${hm(t.d)}発</small>`}</div><div class="dot"></div><div><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
+          : `<div class="xf">乗換 ${ms(r.xf[i - 1])} ・ <span class="slack" style="color:${e.slack < 60 ? "var(--bad)" : e.slack < 180 ? "var(--warn)" : "var(--ok)"}">余裕 ${ms(e.slack)}</span></div>`;
+        tl += `<div class="stop"><div class="t num">${e.through ? hm(t.d) : `${hm(prev.a)}<small>${hm(t.d)}発</small>`}</div><div class="dot"></div><div>${e.through ? `<div class="name">${stations[A + i]}</div>` : nameRow(idx, i, stations[A + i])}${xfInfo}</div></div>`;
       }
       tl += `<div class="ride" style="--c:${ln.color}"><div class="t"></div><div class="bar"><i></i></div><div class="body">
         <span class="line-chip" style="--c:${ln.color}"><i></i>${ln.name} ${esc(t.t)}${t.to ? ` ${esc(t.to)}行` : ""} <span class="hint num">${durJa(t.a - t.d)}</span></span>
@@ -878,6 +940,37 @@ function placeResults() {
   if (need > 0) pad.style.height = `${need}px`;
   scrollTo({ top: target, behavior: "instant" });
 }
+// 同着の一覧：その駅の発車時刻、種別と行き先、この列車を降りる駅での着・発と余裕。
+// 余裕の（）は、カードの同じ駅での乗換との差。カードがその駅で乗り換えないときは一覧の一番上との差
+let lastRes = null;
+const ALT_ICON = `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 3.5 2.5 6.5 5.5 9.5"/><path d="M2.8 6.5H10a3.5 3.5 0 0 1 0 7H7"/></svg>`;
+function openAlt(idx, k) {
+  const { list, alts, xf, A, dir } = lastRes, card = list[idx], { stations, lines } = route(dir), ln = lines[A + k];
+  const rows = alts[idx][k].map(c => {
+    const t = c[k].trip, j = c.findIndex((e, i) => i > k && !e.through);
+    return { t, j, span: j < 0 ? null : c[j].trip.d - c[j - 1].trip.a, ar: j < 0 ? 0 : c[j - 1].trip.a, dp: j < 0 ? 0 : c[j].trip.d };
+  });
+  const sign = d => `${d < 0 ? "−" : "+"}<span class="num">${ms(Math.abs(d))}</span>`;
+  const items = rows.map(r => {
+    let xfRow = "";
+    if (r.j >= 0) {
+      const sl = r.span - xf[r.j - 1], top = rows.find(x => x.j === r.j);
+      const ref = !card[r.j].through ? card[r.j].trip.d - card[r.j - 1].trip.a : top === r ? null : top.span;
+      xfRow = `<div class="xf"><span class="xst">${stations[A + r.j]}</span><span class="pair"><b class="num">${hm(r.ar)}</b>着<i></i><b class="num">${hm(r.dp)}</b>発</span></div>
+        <span class="sl" style="color:${sl < 60 ? "var(--bad)" : sl < 180 ? "var(--warn)" : "var(--ok)"}">余裕 <span class="num">${ms(sl)}</span>${ref === null ? "" : ` (${sign(r.span - ref)})`}</span>`;
+    }
+    return `<li><div class="dep num">${hm(r.t.d)}</div><div class="rt"><span class="kind">${esc(r.t.t)}${r.t.to ? ` ${esc(r.t.to)}行` : ""}</span>${xfRow}</div></li>`;
+  }).join("");
+  $("#alt-body").innerHTML = `<h2 class="alt-h" style="--c:${ln.color}"><span class="k">同着情報</span><span class="st">${stations[A + k]}</span><span class="ln"><i></i>${ln.name}</span></h2>
+    <ul class="alt-list">${items}</ul>`;
+  $("#dlg-alt").showModal();
+  document.activeElement?.blur(); // 開いた直後に閉じるボタンへ枠が出ないように
+}
+$("#results").addEventListener("click", e => {
+  const b = e.target.closest(".alt-b"); if (!b || !lastRes) return;
+  const [idx, k] = b.dataset.alt.split(":").map(Number);
+  openAlt(idx, k);
+});
 function tickCountdown() {
   const now = Date.now();
   document.querySelectorAll("[data-leave]").forEach(el => {
