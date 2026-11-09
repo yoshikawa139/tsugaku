@@ -99,8 +99,12 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 /* 線は前後の区間と同じ「箱」で描き、上下に1pxずつ重ねる。背景画像だと端数の丸め方が違って横にずれ、要素の境目がちょうど画素の途中に来ると細い隙間が出るため */
 .stop .dot::before { z-index: 1; }
 .stop .dot::before { content: ""; box-sizing: border-box; position: absolute; left: 50%; top: 5px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--surface); border: 3px solid var(--ink); }
-/* 乗換駅：着・発の時刻を直通駅と同じ2段にし、色だけ黒にする */
+/* 乗換駅：着・発の時刻を直通駅と同じ2段にし、色だけ黒にする。丸は着と発のちょうど真ん中、駅名と乗換・余裕はその横に1行で */
 .stop.xs .t small { color: var(--ink); }
+.stop.xs .dot::after { background: linear-gradient(var(--cin) var(--mid), var(--cout) var(--mid)); }
+.stop.xs .dot::before { top: calc(var(--mid) - 7px); }
+.stop.xs .row1 { display: flex; align-items: baseline; gap: 10px; min-width: 0; margin-top: 8px; }
+.stop.xs .row1 .xf { white-space: nowrap; }
 .stop .name { font-weight: 700; font-size: 15px; }
 /* 降車不要で通り抜ける駅は、丸の代わりに縦の「…」を置く */
 .stop.thru .dot::after { display: none; }
@@ -135,6 +139,7 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .via .bar::after { content: ""; box-sizing: border-box; position: absolute; left: 50%; top: 9px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--surface); border: 2px solid var(--c); }
 .via .n { font-size: 13px; color: var(--muted); padding-top: 3px; }
 .ride .body .where { display: flex; align-items: center; gap: 4.5px; font-size: 12.5px; line-height: 16px; color: var(--muted); }
+.ride .body .pf svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .ride .body .where.late { color: var(--warn); font-weight: 700; }
 .dly-b { display: inline-flex; align-items: center; justify-content: center; width: 11.9px; height: 16px; margin: 0 0 0 -0.95px; transform: translateY(-1.75px); padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
 .dly-b::before { content: ""; position: absolute; inset: -10px -8px; } /* 押しやすいように当たりを広げる */
@@ -291,10 +296,12 @@ circle.rb-icon { stroke-width: 1.4; }
 .dlg-act { display: flex; justify-content: flex-end; }
 /* 同着：カードの駅のボタンと、押すと開く一覧 */
 .stop .nrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-/* 同着のボタンは駅名の高さの右端に、アイコンの下に2行で置く。行の高さは変えない */
-.stop .nrow { position: relative; }
-.alt-b { position: absolute; right: 0; top: calc(50% + 12px); transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 0; border: 0; background: transparent; color: var(--accent); font: 500 11.5px/1.25 var(--font-body); text-align: center; white-space: nowrap; cursor: pointer; }
-.alt-b svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+/* 右端のボタン：駅名の高さに「ここから再検索」、路線名の高さに「〇:〇〇発も同着」。どちらもアイコンの下に2行。行の高さは変えない */
+.stop, .ride .body { position: relative; }
+.re-b, .alt-b { position: absolute; right: 0; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 0; border: 0; background: transparent; font: 600 10px/11.5px var(--font-body); text-align: center; white-space: nowrap; cursor: pointer; }
+.re-b { top: calc(var(--mid) - 3px); transform: translateY(-50%); color: var(--ink); } /* 同着と重ならないよう、駅名の中心より 3px 上 */
+.alt-b { top: 2px; color: var(--accent); }
+.re-b svg, .alt-b svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 #dlg-alt .dlg-in { gap: 12px; }
 .alt-h { display: flex; flex-direction: column; gap: 2px; line-height: 1.4; padding-bottom: 8px; border-bottom: 3px solid var(--c); }
 .alt-h .k { font-size: 11px; font-weight: 700; letter-spacing: .18em; color: var(--muted); }
@@ -500,6 +507,8 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
 const DEFAULT_ROUTE = { stations: ["A駅", "B駅"], lines: [{ name: "A線", prefix: "a" }], through: [] };
 const SPARE_COLORS = ["#D6457F", "#E2571E", "#0096C7", "#8463CC", "#2A4FA8", "#0F8A6B", "#B7791F"];
 function lineColor(l, i) { return /^#[0-9a-fA-F]{3,8}$/.test(l.color || "") ? l.color : SPARE_COLORS[i % SPARE_COLORS.length]; }
+// 番線（とりあえず駅ごと・方向ごとに1つ）：route.plat[dir][駅] = [着, 発]
+const platOf = (dir, st) => baseRoute().plat?.[dir]?.[st] || [];
 function baseRoute() { return (typeof S !== "undefined" && S && S.route) || DEFAULT_ROUTE; }
 function route(dir) {
   const r = baseRoute();
@@ -972,7 +981,7 @@ function runSearch() {
   // 同着の経路がある駅には、いちばん近い列車の時刻を書いたボタンを付ける
   const nameRow = (idx, i, name) => {
     const g = lastRes.alts[idx][i];
-    return g.length ? `<div class="nrow"><div class="name">${name}</div><button type="button" class="alt-b" data-alt="${idx}:${i}">${ALT_ICON}<span>${hm(g[0][i].trip.d)}発<br>も同着</span></button></div>` : `<div class="name">${name}</div>`;
+    return `<div class="name">${name}</div>`;
   };
   box.innerHTML = r.list.map((chain, idx) => {
     const first = chain[0].trip, last = chain[chain.length - 1].trip;
@@ -989,14 +998,21 @@ function runSearch() {
         const xfInfo = e.through
           ? `<div class="xf">降車不要・停車 ${ms(t.d - prev.a)}</div>`
           : `<div class="xf">乗換 ${ms(r.xf[i - 1] + e.slack)} ・ <span class="slack" style="color:${e.slack < 60 ? "var(--bad)" : e.slack < 180 ? "var(--warn)" : "var(--ok)"}">余裕 ${ms(e.slack)}</span></div>`;
-        tl += `<div class="stop${e.through ? " thru" : " xs"}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color}"><div class="t num"><small>${LT(prev, prev.a)}<span class="ja">着</span></small><small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot">${e.through ? `<i class="a"></i><i class="b"></i>` : ""}</div><div>${e.through ? `<div class="name">${stations[A + i]}</div>` : nameRow(idx, i, stations[A + i])}${xfInfo}</div></div>`;
+        const re = `<button type="button" class="re-b" data-re="${idx}:${i}">${RE_ICON}<span>ここから<br>再検索</span></button>`;
+        if (!e.through) tl += `<div class="stop xs" style="--cin:${lines[A + i - 1].color};--cout:${ln.color};--mid:19.6px"><div class="t num"><small>${LT(prev, prev.a)}<span class="ja">着</span></small><small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot"></div><div class="row1"><div class="name">${stations[A + i]}</div>${xfInfo}</div>${re}</div>`;
+        else tl += `<div class="stop thru" style="--cin:${lines[A + i - 1].color};--cout:${ln.color};--mid:12.6px"><div class="t num"><small>${LT(prev, prev.a)}<span class="ja">着</span></small><small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot"><i class="a"></i><i class="b"></i></div><div><div class="name">${stations[A + i]}</div>${xfInfo}</div>${re}</div>`;
       }
       // 途中駅（駅間データがあれば）。「∨ s駅」で開くと、所要を等分した時刻で並べる
       const vs = viaStops(stations[A + i], stations[A + i + 1], ln, t.t), segs = vs ? vs.length - 1 : 0, vk = `${t.id}`, open = viaOpen.has(vk);
       const viaBtn = segs > 1 ? `<button type="button" class="via-b" data-via="${esc(vk)}" aria-expanded="${open}">${VIA_ICON}${segs}駅</button>` : segs === 1 ? `<span class="via-b one">1駅</span>` : "";
+      // 番線：降車不要で通り抜ける側は出さない
+      const g = lastRes.alts[idx][i], thruNext = chain[i + 1]?.through;
+      const pd = e.through ? "" : platOf(dir, stations[A + i])[1], pa = thruNext ? "" : platOf(dir, stations[A + i + 1])[0];
+      const pf = pd || pa ? `<span class="where pf">${TRAIN_ICON}${pd ? `${esc(pd)}番線発` : ""}${pd && pa ? "→" : ""}${pa ? `${esc(pa)}番線着` : ""}</span>` : "";
+      const alt = g.length ? `<button type="button" class="alt-b" data-alt="${idx}:${i}">${ALT_ICON}<span>${hm(g[0][i].trip.d)}発<br>も同着</span></button>` : "";
       tl += `<div class="ride" style="--c:${ln.color}"><div class="t rt"><span class="m num">${durJa(t.a - t.d).replace(/[^0-9]+/g, x => `<span class="ja">${x}</span>`)}</span>${viaBtn}</div><div class="bar"><i></i></div><div class="body">
         <span class="line-chip" style="--c:${ln.color}">${ln.name}${t.t ? ` ${esc(t.t)}` : ""}${t.to ? ` ${esc(t.to)}行` : ""}</span>
-        <span class="where${t.dl ? " late" : ""}"><button type="button" class="dly-b" data-dly="${idx}:${i}" aria-label="${ln.name}の遅延情報を入力">${SW_ICON}</button>${t.dl ? `${t.dl / 60}分遅れ` : "定刻通り"}</span></div></div>`;
+        ${pf}<span class="where${t.dl ? " late" : ""}"><button type="button" class="dly-b" data-dly="${idx}:${i}" aria-label="${ln.name}の遅延情報を入力">${SW_ICON}</button>${t.dl ? `${t.dl / 60}分遅れ` : "定刻通り"}</span>${alt}</div></div>`;
       for (let k = 1; k < segs; k++) tl += `<div class="via" data-of="${esc(vk)}" style="--c:${ln.color}"${open ? "" : " hidden"}><div class="t num">${LT(t, Math.round((t.d + (t.a - t.d) * k / segs) / 60) * 60)}</div><div class="bar"><i></i></div><div class="n">${vs[k]}</div></div>`;
     });
     tl += `<div class="stop" style="--cin:${lines[B - 1].color}"><div class="t num">${LT(last, last.a)}</div><div class="dot"></div><div><div class="name">${stations[B]}</div></div></div>`;
@@ -1098,6 +1114,8 @@ function viaStops(from, to, ln, type) {
 
 /* ===== 遅延情報（路線ごと・手入力。更新から3時間で消える） ===== */
 const DELAY_TTL = 3 * 3600 * 1000;
+const RE_ICON = `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.6" cy="6.6" r="4.4"/><path d="M9.9 9.9 14 14" stroke-width="2.6"/></svg>`;
+const TRAIN_ICON = `<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2.5" y="1" width="7" height="8" rx="1.6"/><path d="M2.5 5.5h7M4.5 7.3h0M7.5 7.3h0M4 9 3 11M8 9l1 2"/></svg>`;
 const SW_ICON = `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="9.2" r="5.3"/><path d="M8 9.2V6.4M6.4 1.8h3.2M8 1.8v2.1M12.3 4.6l1-1"/></svg>`;
 const PEN_ICON = `<svg class="pen" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.6 2.6l2.8 2.8-7.7 7.7-3.5.7.7-3.5z M9.2 4l2.8 2.8"/></svg>`;
 function delayRec(prefix) {
@@ -1378,7 +1396,7 @@ function applyPack(text) {
     if (!Array.isArray(r.stations) || !Array.isArray(r.lines) || r.lines.length !== r.stations.length - 1) return "パックの経路が読めません。";
     const changed = !S.needRoute && !sameRoute(r, baseRoute());
     delete S.needRoute;
-    S.route = { stations: r.stations, lines: r.lines.map(l => ({ name: l.name, prefix: l.prefix, ...(l.color ? { color: l.color } : {}) })), through: r.through || [] };
+    S.route = { stations: r.stations, lines: r.lines.map(l => ({ name: l.name, prefix: l.prefix, ...(l.color ? { color: l.color } : {}) })), through: r.through || [], ...(r.plat ? { plat: r.plat } : {}) };
     if (changed) {
       // 駅が変わったら、古い経路の時刻表と乗車位置は捨てる（乗換時間は駅名が同じなら残る）
       S.tt = {}; S.sample = {}; S.links = {}; S.pos = {};
