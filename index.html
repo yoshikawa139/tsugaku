@@ -114,7 +114,7 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .ride .bar i { width: 6px; background: var(--c); margin: -1px 0; }
 /* 左に「m分 ∨s駅」、右に「■ 路線 種別 行先」と運行情報。上の余白12px・下15px（文字の端どうし） */
 .ride .rt { display: flex; flex-direction: column; align-items: flex-end; padding: 3.75px 0 9px; }
-.stop:first-child + .ride .rt, .stop:first-child + .ride .body { padding-top: 3.25px; }
+.stop:first-child + .ride .rt, .stop:first-child + .ride .body, .xs:first-child + .ride .rt, .xs:first-child + .ride .body { padding-top: 3.25px; }
 .ride .rt .m { font-size: 13px; font-weight: 600; color: var(--muted); line-height: 20px; }
 .ride .body { padding: 3.75px 0 0; display: flex; flex-direction: column; min-width: 0; }
 .ride .body .line-chip { line-height: 20px; }
@@ -127,7 +127,7 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .via-b[aria-expanded="true"] svg { transform: rotate(180deg); }
 .via { display: grid; grid-template-columns: 52px 18px 1fr; column-gap: 8px; min-height: 26px; }
 .via[hidden] { display: none; }
-.via:has(+ .stop) { min-height: 32px; } /* 次の駅の丸が大きい分、線の見える長さをそろえる */
+.via:has(+ .stop), .via:has(+ .xs) { min-height: 32px; } /* 次の駅の丸が大きい分、線の見える長さをそろえる */
 .via .t { text-align: right; font-size: 12.5px; color: var(--muted); padding-top: 3px; }
 .via .bar { display: flex; justify-content: center; position: relative; }
 .via .bar i { width: 6px; background: var(--c); margin: -1px 0; }
@@ -288,25 +288,26 @@ circle.rb-icon { stroke-width: 1.4; }
 .dlg-in { display: flex; flex-direction: column; gap: 14px; padding: 18px; }
 .dlg-in h2 { margin: 0; font-size: 16px; }
 .dlg-act { display: flex; justify-content: flex-end; }
-/* 乗換駅：着く列車の丸と乗る列車の丸を分け、間は線を切る */
-.xst { display: grid; grid-template-columns: 52px 18px 1fr auto; column-gap: 8px; grid-template-rows: auto auto auto; }
-.xst .t { text-align: right; font-size: 14px; font-weight: 600; padding-top: 1px; }
-.xst .td { color: var(--accent); }
-.xst > :nth-child(3n+1) { grid-column: 1; } .xst > :nth-child(3n+2) { grid-column: 2; } .xst > :nth-child(3n) { grid-column: 3; }
-.xst > :nth-child(-n+3) { grid-row: 1; } .xst > :nth-child(n+4):nth-child(-n+6) { grid-row: 2; } .xst > :nth-child(n+7):nth-child(-n+9) { grid-row: 3; }
-.xst .da, .xst .dd { position: relative; }
-.xst .da::after, .xst .dd::after { content: ""; position: absolute; left: 6px; width: 6px; }
-.xst .da::after { top: -1px; height: 13px; background: var(--cin); }
-.xst .dd::after { top: 12px; bottom: -1px; background: var(--cout); }
-.xst .da::before, .xst .dd::before { content: ""; z-index: 1; box-sizing: border-box; position: absolute; left: 50%; top: 3px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--surface); border: 3px solid var(--ink); }
-.xst .pl { font-size: 13px; color: var(--muted); padding-top: 1px; }
+/* 駅：着く列車の丸と乗る列車の丸を分け、間は線を切る。丸の中心は上の行で 12px、下の行で 7px の高さ */
+.xs { display: grid; grid-template-columns: 52px 18px 1fr auto; grid-template-rows: auto 27px auto; column-gap: 8px; }
+.xs .r1 { grid-row: 1; padding-top: 5px; } .xs .r2 { grid-row: 2; } .xs .r3 { grid-row: 3; padding-bottom: 3px; }
+.xs .t { grid-column: 1; text-align: right; font-size: 14px; font-weight: 600; line-height: 14px; }
+.xs .t.alt { color: var(--accent); }
+.xs .da, .xs .dd { grid-column: 2; position: relative; }
+.xs .pl, .xs .name { grid-column: 3; }
+.xs .da::after, .xs .dd::after { content: ""; position: absolute; left: 6px; width: 6px; }
+.xs .da::after { top: -1px; height: 13px; background: var(--cin); }
+.xs .dd::after { top: 7px; bottom: -1px; background: var(--cout); }
+.xs .da::before, .xs .dd::before { content: ""; z-index: 1; box-sizing: border-box; position: absolute; left: 50%; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--surface); border: 3px solid var(--ink); }
+.xs .da::before { top: 3px; } .xs .dd::before { top: -2px; }
+.xs .pl { font-size: 13px; line-height: 14px; color: var(--muted); }
 .pn { color: var(--go); }
-.pl.in { font-size: 13px; font-weight: 400; color: var(--muted); margin-left: 8px; }
-.xst .xk { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; padding: 3px 0; font-weight: 500; font-size: 12.5px; color: var(--muted); line-height: 16px; }
-.xst .xk > span { display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
-.xst .xk b { font-weight: 700; font-size: 10.5px; line-height: 14px; padding: 0 2px; border-radius: 3px; background: var(--muted); color: var(--surface); font-family: var(--font-body); }
-.xst .name { font-weight: 700; font-size: 15px; align-self: center; }
-.xst > .alt-v { grid-column: 4; grid-row: 1 / 4; align-self: center; display: flex; flex-direction: column; align-items: center; gap: 2px; border: 0; background: transparent; color: var(--accent); font: 500 11.5px/1.3 var(--font-body); text-align: center; padding: 4px 2px; cursor: pointer; }
+.xs .xk { display: flex; flex-direction: column; justify-content: center; align-items: flex-end; gap: 1px; font-weight: 500; font-size: 12.5px; color: var(--muted); }
+.xs .xk > span { display: flex; align-items: center; gap: 2px; height: 13px; white-space: nowrap; }
+.xs .xk .num { line-height: 13px; }
+.xs .xk b { display: block; font-weight: 700; font-size: 10.5px; line-height: 13px; height: 13px; padding: 0 2px; border-radius: 3px; background: var(--muted); color: #FFFFFF; font-family: var(--font-body); }
+.xs .name { font-weight: 700; font-size: 15px; line-height: 20px; align-self: center; }
+.xs > .alt-v { grid-column: 4; grid-row: 1 / 4; align-self: center; display: flex; flex-direction: column; align-items: center; gap: 2px; border: 0; background: transparent; color: var(--accent); font: 500 11.5px/1.3 var(--font-body); text-align: center; padding: 4px 2px; cursor: pointer; }
 .alt-v svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 /* 同着：カードの駅のボタンと、押すと開く一覧 */
 .stop .nrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
@@ -990,11 +991,17 @@ function runSearch() {
   const best = r.lead;
   const xh = transferSecs(dir, true).slice(A, B - 1);
   lastRes = { ...r, alts: r.list.map(c => sameArrivals(r.built, xh, c)), A, B, dir, base };
-  // 同着の経路がある駅には、いちばん近い列車の時刻を書いたボタンを付ける
-  const nameRow = (idx, i, name, pl = "") => {
-    const g = lastRes.alts[idx][i];
-    if (pl) name += `<span class="pl in">${pl}</span>`;
-    return g.length ? `<div class="nrow"><div class="name">${name}</div><button type="button" class="alt-b" data-alt="${idx}:${i}">${ALT_ICON}<span>${hm(g[0][i].trip.d)}発も同着</span></button></div>` : `<div class="name">${name}</div>`;
+  // 乗る・降りる駅：着いた列車の丸と乗る列車の丸を分けて置き、間は線を切る。間に駅名、左に乗換と余裕。
+  // 始点は発の丸だけ、終点は着の丸だけで、駅名は乗換駅と同じだけ丸の上・下にずらす。
+  // 同着の経路がある駅は右端に、いちばん近い列車の時刻を出し、そのときだけ発時刻を青くする
+  const xsBox = (idx, i, st, o) => {
+    const g = i >= 0 ? lastRes.alts[idx][i] : [], [pa, pd] = platOf(dir, st);
+    return `<div class="xs" style="${o.cin ? `--cin:${o.cin};` : ""}${o.cout ? `--cout:${o.cout}` : ""}">
+      ${o.at ? `<div class="t num r1">${o.at}</div><div class="da r1"></div><div class="pl r1">${platJa(pa, "着")}</div>` : ""}
+      <div class="t xk r2">${o.xk || ""}</div><div class="name r2">${st}</div>
+      ${o.dt ? `<div class="t num r3${g.length ? " alt" : ""}">${o.dt}</div><div class="dd r3"></div><div class="pl r3">${platJa(pd, "発")}</div>` : ""}
+      ${g.length ? `<button type="button" class="alt-v" data-alt="${idx}:${i}">${ALT_ICON}<span>${hm(g[0][i].trip.d)}発<br>も同着</span></button>` : ""}
+    </div>`;
   };
   box.innerHTML = r.list.map((chain, idx) => {
     const first = chain[0].trip, last = chain[chain.length - 1].trip;
@@ -1005,7 +1012,7 @@ function runSearch() {
     let tl = "";
     chain.forEach((e, i) => {
       const t = e.trip, ln = lines[A + i];
-      if (i === 0) tl += `<div class="stop" style="--cout:${ln.color}"><div class="t num">${LT(t, t.d)}</div><div class="dot"></div><div>${nameRow(idx, 0, stations[A], platJa(platOf(dir, stations[A])[1], "発"))}</div></div>`;
+      if (i === 0) tl += xsBox(idx, 0, stations[A], { cout: ln.color, dt: LT(t, t.d) });
       else {
         const prev = chain[i - 1].trip;
         const xfInfo = e.through
@@ -1013,15 +1020,9 @@ function runSearch() {
           : `<div class="xf">乗換 ${ms(r.xf[i - 1] + e.slack)} ・ <span class="slack" style="color:${e.slack < 60 ? "var(--bad)" : e.slack < 180 ? "var(--warn)" : "var(--ok)"}">余裕 ${ms(e.slack)}</span></div>`;
         if (e.through) tl += `<div class="stop thru" style="--cin:${lines[A + i - 1].color};--cout:${ln.color}"><div class="t num">${LT(prev, prev.a)}<small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot"><i class="a"></i><i class="b"></i></div><div><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
         else {
-          // 乗換駅：線をここで切り、着いた列車の丸と乗る列車の丸を分けて置く。間に駅名、左に乗換と余裕
-          const st = stations[A + i], [pa, pd] = platOf(dir, st), g = lastRes.alts[idx][i];
           const slc = e.slack < 60 ? "var(--bad)" : e.slack < 180 ? "var(--warn)" : "var(--ok)";
-          tl += `<div class="xst" style="--cin:${lines[A + i - 1].color};--cout:${ln.color}">
-            <div class="t num ta">${LT(prev, prev.a)}</div><div class="da"></div><div class="pl">${platJa(pa, "着")}</div>
-            <div class="t xk"><span><b>乗換</b><span class="num">${ms(r.xf[i - 1])}</span></span><span><b>余裕</b><span class="num" style="color:${slc}">${ms(e.slack)}</span></span></div><div></div><div class="name">${st}</div>
-            <div class="t num td">${LT(t, t.d)}</div><div class="dd"></div><div class="pl">${platJa(pd, "発")}</div>
-            ${g.length ? `<button type="button" class="alt-v" data-alt="${idx}:${i}">${ALT_ICON}<span>${hm(g[0][i].trip.d)}発<br>も同着</span></button>` : ""}
-          </div>`;
+          tl += xsBox(idx, i, stations[A + i], { cin: lines[A + i - 1].color, cout: ln.color, at: LT(prev, prev.a), dt: LT(t, t.d),
+            xk: `<span><b>乗換</b><span class="num">${ms(r.xf[i - 1] + e.slack)}</span></span><span><b>余裕</b><span class="num" style="color:${slc}">${ms(e.slack)}</span></span>` });
         }
       }
       // 途中駅（駅間データがあれば）。「∨ s駅」で開くと、所要を等分した時刻で並べる
@@ -1032,7 +1033,7 @@ function runSearch() {
         <span class="where${t.dl ? " late" : ""}"><button type="button" class="dly-b" data-dly="${idx}:${i}" aria-label="${ln.name}の遅延情報を入力">${SW_ICON}</button>${t.dl ? `${t.dl / 60}分遅れ` : "定刻通り"}</span></div></div>`;
       for (let k = 1; k < segs; k++) tl += `<div class="via" data-of="${esc(vk)}" style="--c:${ln.color}"${open ? "" : " hidden"}><div class="t num">${LT(t, Math.round((t.d + (t.a - t.d) * k / segs) / 60) * 60)}</div><div class="bar"><i></i></div><div class="n">${vs[k]}</div></div>`;
     });
-    tl += `<div class="stop" style="--cin:${lines[B - 1].color}"><div class="t num">${LT(last, last.a)}</div><div class="dot"></div><div><div class="name">${stations[B]}${platOf(dir, stations[B])[0] ? `<span class="pl in">${platJa(platOf(dir, stations[B])[0], "着")}</span>` : ""}</div></div></div>`;
+    tl += xsBox(idx, -1, stations[B], { cin: lines[B - 1].color, at: LT(last, last.a) });
     const transfers = chain.slice(1).filter(e => !e.through).length;
     return `<details class="opt"${idx === r.lead ? " data-main" : ""}${idx === best ? " open" : ""}>
       <summary>
