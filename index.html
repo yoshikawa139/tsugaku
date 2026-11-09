@@ -99,16 +99,9 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .stop .dot::after { content: ""; position: absolute; left: 6px; width: 6px; top: -1px; bottom: -1px; background: linear-gradient(var(--cin, transparent) 13px, var(--cout, transparent) 13px); }
 /* 線は前後の区間と同じ「箱」で描き、上下に1pxずつ重ねる。背景画像だと端数の丸め方が違って横にずれ、要素の境目がちょうど画素の途中に来ると細い隙間が出るため */
 .stop .dot::before { z-index: 1; }
-.stop .dot::before { content: ""; box-sizing: border-box; position: absolute; left: 50%; top: 3px; width: 14px; height: 14px; margin-left: -7px; top: 5px; border-radius: 50%; background: var(--surface); border: 3px solid var(--ink); }
-/* 乗換駅：線をここで切り、着いた列車の丸（中心 12px）と乗る列車の丸（中心 38px、丸と丸の間 12px）を分ける。発時刻は下の丸の横に着時刻と同じ形で */
-.stop.xs .dot::after { display: none; }
-.stop.xs .dot i { position: absolute; left: 6px; width: 6px; }
-.stop.xs .dot .a { top: -1px; height: 13px; background: var(--cin); }
-.stop.xs .dot .b { top: 38px; bottom: -1px; background: var(--cout); }
-.stop.xs .dot .c { z-index: 1; box-sizing: border-box; left: 50%; top: 39px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--surface); border: 3px solid var(--ink); }
-.stop.xs .dot .c { top: 31px; }
-.stop.xs .t .dt { display: block; margin-top: 4.5px; }
-.stop.xs > div:last-child > :first-child { margin-top: 14.75px; } /* 駅名は上下の丸のちょうど真ん中（中心 25px） */
+.stop .dot::before { content: ""; box-sizing: border-box; position: absolute; left: 50%; top: 5px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--surface); border: 3px solid var(--ink); }
+/* 乗換駅：着・発の時刻を直通駅と同じ2段にし、色だけ黒にする */
+.stop.xs .t small { color: var(--ink); }
 .stop .name { font-weight: 700; font-size: 15px; }
 /* 降車不要で通り抜ける駅は、丸の代わりに縦の「…」を置く */
 .stop.thru .dot::after { display: none; }
@@ -998,7 +991,7 @@ function runSearch() {
         const xfInfo = e.through
           ? `<div class="xf">降車不要・停車 ${ms(t.d - prev.a)}</div>`
           : `<div class="xf">乗換 ${ms(r.xf[i - 1] + e.slack)} ・ <span class="slack" style="color:${e.slack < 60 ? "var(--bad)" : e.slack < 180 ? "var(--warn)" : "var(--ok)"}">余裕 ${ms(e.slack)}</span></div>`;
-        tl += `<div class="stop${e.through ? " thru" : " xs"}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color}"><div class="t num">${e.through ? `<small>${LT(prev, prev.a)}<span class="ja">着</span></small><small>${LT(t, t.d)}<span class="ja">発</span></small>` : `${LT(prev, prev.a)}<span class="dt">${LT(t, t.d)}</span>`}</div><div class="dot"><i class="a"></i><i class="b"></i>${e.through ? "" : `<i class="c"></i>`}</div><div>${e.through ? `<div class="name">${stations[A + i]}</div>` : nameRow(idx, i, stations[A + i])}${xfInfo}</div></div>`;
+        tl += `<div class="stop${e.through ? " thru" : " xs"}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color}"><div class="t num"><small>${LT(prev, prev.a)}<span class="ja">着</span></small><small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot">${e.through ? `<i class="a"></i><i class="b"></i>` : ""}</div><div>${e.through ? `<div class="name">${stations[A + i]}</div>` : nameRow(idx, i, stations[A + i])}${xfInfo}</div></div>`;
       }
       // 途中駅（駅間データがあれば）。「∨ s駅」で開くと、所要を等分した時刻で並べる
       const vs = viaStops(stations[A + i], stations[A + i + 1], ln, t.t), segs = vs ? vs.length - 1 : 0, vk = `${t.id}`, open = viaOpen.has(vk);
