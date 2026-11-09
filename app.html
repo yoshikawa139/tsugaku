@@ -100,6 +100,12 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .stop .dot::before { z-index: 1; }
 .stop .dot::before { content: ""; box-sizing: border-box; position: absolute; left: 50%; top: 3px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--surface); border: 3px solid var(--ink); }
 .stop .name { font-weight: 700; font-size: 15px; }
+/* 降車不要で通り抜ける駅は、丸の代わりに縦の「…」を置く */
+.stop.thru .dot::after { display: none; }
+.stop.thru .dot::before { top: calc(50% - 3px); width: 6px; height: 6px; margin-left: -3px; border: 0; background: var(--ink); box-shadow: 0 -9px var(--ink), 0 9px var(--ink); }
+.stop.thru .dot i { position: absolute; left: 6px; width: 6px; height: calc(50% - 15px); }
+.stop.thru .dot .a { top: -1px; background: var(--cin); border-radius: 0 0 3px 3px; }
+.stop.thru .dot .b { bottom: -1px; background: var(--cout); border-radius: 3px 3px 0 0; }
 .stop .xf { font-size: 12.5px; color: var(--muted); }
 .stop .xf .slack { font-weight: 700; }
 .ride { display: grid; grid-template-columns: 52px 18px 1fr; column-gap: 8px; }
@@ -111,7 +117,9 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .ride .rt .m { font-size: 13px; font-weight: 600; color: var(--muted); line-height: 20px; }
 .ride .body { padding: 3.75px 0 0; display: flex; flex-direction: column; min-width: 0; }
 .ride .body .line-chip { line-height: 20px; }
-.ride .body .line-chip i { transform: translateY(-1px); }
+.ride .body .line-chip { gap: 0; white-space: pre; display: inline; }
+/* 路線名は路線の色で塗りつぶす（■の代わり） */
+.lnf { display: inline-block; padding: 3px 1.5px 0; border-radius: 3px; background: var(--c); color: #fff; font-weight: 600; line-height: 13px; } /* 文字の端から色の端までを上下左右とも2pxにそろえる（実測） */
 .via-b { display: inline-flex; align-items: center; gap: 1px; border: 0; background: none; padding: 0; color: var(--accent); font: 500 12px/16px var(--font-body); cursor: pointer; white-space: nowrap; }
 .via-b.one { color: var(--muted); cursor: default; }
 .via-b svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform .15s; }
@@ -287,6 +295,7 @@ circle.rb-icon { stroke-width: 1.4; }
 .alt-h { display: flex; flex-direction: column; gap: 2px; line-height: 1.4; padding-bottom: 8px; border-bottom: 3px solid var(--c); }
 .alt-h .k { font-size: 11px; font-weight: 700; letter-spacing: .18em; color: var(--muted); }
 .alt-h .st { font-size: 24px; font-weight: 700; letter-spacing: .06em; line-height: 1.25; }
+.alt-h .st .lnf { padding: 5.5px 2px 1px 3px; line-height: 24px; font-weight: 700; letter-spacing: .06em; }
 .alt-h .ln { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--muted); margin-top: 2px; }
 .alt-h .ln i { width: 10px; height: 10px; border-radius: 2px; background: var(--c); transform: translateY(-1px); } /* 文字と上下の中心をそろえる */
 .alt-h .ln:has(.pen) { gap: 4px; }
@@ -974,15 +983,15 @@ function runSearch() {
       else {
         const prev = chain[i - 1].trip;
         const xfInfo = e.through
-          ? `<div class="xf">直通・そのまま乗車</div>`
+          ? `<div class="xf">降車不要・停車 ${ms(t.d - prev.a)}</div>`
           : `<div class="xf">乗換 ${ms(r.xf[i - 1] + e.slack)} ・ <span class="slack" style="color:${e.slack < 60 ? "var(--bad)" : e.slack < 180 ? "var(--warn)" : "var(--ok)"}">余裕 ${ms(e.slack)}</span></div>`;
-        tl += `<div class="stop" style="--cin:${lines[A + i - 1].color};--cout:${ln.color}"><div class="t num">${e.through ? LT(t, t.d) : `${LT(prev, prev.a)}<small>${LT(t, t.d)}<span class="ja">発</span></small>`}</div><div class="dot"></div><div>${e.through ? `<div class="name">${stations[A + i]}</div>` : nameRow(idx, i, stations[A + i])}${xfInfo}</div></div>`;
+        tl += `<div class="stop${e.through ? " thru" : ""}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color}"><div class="t num">${LT(prev, prev.a)}<small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot">${e.through ? `<i class="a"></i><i class="b"></i>` : ""}</div><div>${e.through ? `<div class="name">${stations[A + i]}</div>` : nameRow(idx, i, stations[A + i])}${xfInfo}</div></div>`;
       }
       // 途中駅（駅間データがあれば）。「∨ s駅」で開くと、所要を等分した時刻で並べる
       const vs = viaStops(stations[A + i], stations[A + i + 1], ln, t.t), segs = vs ? vs.length - 1 : 0, vk = `${t.id}`, open = viaOpen.has(vk);
       const viaBtn = segs > 1 ? `<button type="button" class="via-b" data-via="${esc(vk)}" aria-expanded="${open}">${VIA_ICON}${segs}駅</button>` : segs === 1 ? `<span class="via-b one">1駅</span>` : "";
       tl += `<div class="ride" style="--c:${ln.color}"><div class="t rt"><span class="m num">${durJa(t.a - t.d).replace(/[^0-9]+/g, x => `<span class="ja">${x}</span>`)}</span>${viaBtn}</div><div class="bar"><i></i></div><div class="body">
-        <span class="line-chip" style="--c:${ln.color}"><i></i>${ln.name}${t.t ? ` ${esc(t.t)}` : ""}${t.to ? ` ${esc(t.to)}行` : ""}</span>
+        <span class="line-chip" style="--c:${ln.color}">${ln.name}${t.t ? ` ${esc(t.t)}` : ""}${t.to ? ` ${esc(t.to)}行` : ""}</span>
         <span class="where${t.dl ? " late" : ""}"><button type="button" class="dly-b" data-dly="${idx}:${i}" aria-label="${ln.name}の遅延情報を入力">${SW_ICON}</button>${t.dl ? `${t.dl / 60}分遅れ` : "定刻通り"}</span></div></div>`;
       for (let k = 1; k < segs; k++) tl += `<div class="via" data-of="${esc(vk)}" style="--c:${ln.color}"${open ? "" : " hidden"}><div class="t num">${LT(t, Math.round((t.d + (t.a - t.d) * k / segs) / 60) * 60)}</div><div class="bar"><i></i></div><div class="n">${vs[k]}</div></div>`;
     });
@@ -1039,7 +1048,7 @@ function openAlt(idx, k) {
     }
     return `<li><div class="dep num">${hm(r.t.d)}</div><div class="rt"><span class="kind">${esc(r.t.t)}${r.t.to ? ` ${esc(r.t.to)}行` : ""}</span>${xfRow}</div></li>`;
   }).join("") + cardRow;
-  $("#alt-body").innerHTML = `<h2 class="alt-h" style="--c:${ln.color}"><span class="k">同着情報</span><span class="st">${stations[A + k]}</span><span class="ln"><i></i>${ln.name}</span></h2>
+  $("#alt-body").innerHTML = `<h2 class="alt-h" style="--c:${ln.color}"><span class="k">同着情報</span><span class="st">${stations[A + k]}</span><span class="ln"><b class="lnf">${ln.name}</b></span></h2>
     <ul class="alt-list">${items}</ul>`;
   $("#dlg-alt").showModal();
   document.activeElement?.blur(); // 開いた直後に閉じるボタンへ枠が出ないように
@@ -1107,8 +1116,8 @@ function openDelay(idx, i) {
 }
 function drawDelay() {
   const e = dlEdit, rec = delayRec(e.prefix), now = (Date.now() - e.base) / 1000;
-  const rows = e.plan.map((p, k) => `<li data-k="${k}" class="${k === e.sel ? "on" : ""}"><span class="t">${hm(p.sec)}${k === 0 ? `<span class="ja">発</span>` : ""}</span><span class="b"></span><span>${p.n}</span>${k === e.sel ? `<span class="tag">${hm(now)} 現在</span>` : "<span></span>"}</li>`).join("");
-  $("#dl-body").innerHTML = `<h2 class="alt-h" style="--c:${e.color}"><span class="k">遅延情報</span><span class="st">${e.name}</span><span class="ln">${rec ? `${PEN_ICON}最終更新 ${hm((rec.at - e.base) / 1000)}` : "未入力"}</span></h2>
+  const rows = e.plan.map((p, k) => `<li data-k="${k}" class="${k === e.sel ? "on" : ""}"><span class="t">${hm(p.sec)}</span><span class="b"></span><span>${p.n}</span>${k === e.sel ? `<span class="tag">${hm(now)} 現在</span>` : "<span></span>"}</li>`).join("");
+  $("#dl-body").innerHTML = `<h2 class="alt-h" style="--c:${e.color}"><span class="k">遅延情報</span><span class="st"><b class="lnf">${e.name}</b></span><span class="ln">${rec ? `${PEN_ICON}最終更新 ${hm((rec.at - e.base) / 1000)}` : "未入力"}</span></h2>
     <div class="dl-step"><button type="button" data-step="-1" aria-label="1分減らす">−</button><span class="v${e.min ? "" : " zero"}">${e.min}<small>分</small></span><button type="button" data-step="1" aria-label="1分増やす">＋</button></div>
     <button type="button" class="dl-reset">リセット</button>
     <ul class="dl-list" style="--c:${e.color}">${rows}</ul>
