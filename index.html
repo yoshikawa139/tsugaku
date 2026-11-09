@@ -94,15 +94,43 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .stop { display: grid; grid-template-columns: 52px 18px 1fr; column-gap: 8px; }
 .stop .t { text-align: right; font-size: 14px; font-weight: 600; padding-top: 1px; }
 .stop .t small { display: block; font-weight: 500; color: var(--muted); font-size: 12px; }
-.stop .dot { position: relative; }
-.stop .dot::before { content: ""; position: absolute; left: 3px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); border: 3px solid var(--ink); }
+/* 線は駅の丸の中心で前後の路線の色につなぐ。丸は線の中心に置く */
+.stop .dot { position: relative; background: linear-gradient(var(--cin, transparent), var(--cin, transparent)) center top / 6px 12px no-repeat, linear-gradient(var(--cout, transparent), var(--cout, transparent)) center 12px / 6px calc(100% - 12px) no-repeat; }
+.stop .dot::before { content: ""; box-sizing: border-box; position: absolute; left: 50%; top: 3px; width: 18px; height: 18px; margin-left: -9px; border-radius: 50%; background: var(--surface); border: 3px solid var(--ink); }
 .stop .name { font-weight: 700; font-size: 15px; }
 .stop .xf { font-size: 12.5px; color: var(--muted); }
 .stop .xf .slack { font-weight: 700; }
 .ride { display: grid; grid-template-columns: 52px 18px 1fr; column-gap: 8px; }
 .ride .bar { display: flex; justify-content: center; }
-.ride .bar i { width: 6px; border-radius: 3px; background: var(--c); margin-block: 2px; }
-.ride .body { padding-block: 6px 10px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ride .bar i { width: 6px; background: var(--c); }
+/* 左に「m分 ∨s駅」、右に「■ 路線 種別 行先」と運行情報。上の余白12px・下15px（文字の端どうし） */
+.ride .rt { display: flex; flex-direction: column; align-items: flex-end; padding: 3.75px 0 9px; }
+.stop:first-child + .ride .rt, .stop:first-child + .ride .body { padding-top: 3.25px; }
+.ride .rt .m { font-size: 13px; font-weight: 600; color: var(--muted); line-height: 20px; }
+.ride .body { padding: 3.75px 0 0; display: flex; flex-direction: column; min-width: 0; }
+.ride .body .line-chip { line-height: 20px; }
+.ride .body .line-chip i { transform: translateY(-1px); }
+.via-b { display: inline-flex; align-items: center; gap: 1px; border: 0; background: none; padding: 0; color: var(--accent); font: 500 12px/16px var(--font-body); cursor: pointer; white-space: nowrap; }
+.via-b.one { color: var(--muted); cursor: default; }
+.via-b svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform .15s; }
+.via-b[aria-expanded="true"] svg { transform: rotate(180deg); }
+.via { display: grid; grid-template-columns: 52px 18px 1fr; column-gap: 8px; min-height: 26px; }
+.via[hidden] { display: none; }
+.via:has(+ .stop) { min-height: 32px; } /* 次の駅の丸が大きい分、線の見える長さをそろえる */
+.via .t { text-align: right; font-size: 12.5px; color: var(--muted); padding-top: 3px; }
+.via .bar { display: flex; justify-content: center; position: relative; }
+.via .bar i { width: 6px; background: var(--c); }
+.via .bar::after { content: ""; box-sizing: border-box; position: absolute; left: 50%; top: 9px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--surface); border: 2px solid var(--c); }
+.via .n { font-size: 13px; color: var(--muted); padding-top: 3px; }
+.ride .body .where { display: flex; align-items: center; gap: 4.5px; font-size: 12.5px; line-height: 16px; color: var(--muted); }
+.ride .body .where.late { color: var(--warn); font-weight: 700; }
+.dly-b { display: inline-flex; align-items: center; justify-content: center; width: 11.9px; height: 16px; margin: 0 0 0 -0.95px; transform: translateY(-1.75px); padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
+.dly-b::before { content: ""; position: absolute; inset: -10px -8px; } /* 押しやすいように当たりを広げる */
+.dly-b { position: relative; }
+.dly-b svg { width: 11.9px; height: 11.9px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
+.lt { color: var(--warn); }
+.num .ja { font-family: var(--font-body); } /* 時刻の中の「発」「分」は本文の字体で */
+#results .opt { margin-left: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px))); border-radius: 0; border-left: 0; border-right: 0; }
 .line-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
 .line-chip i { width: 10px; height: 10px; border-radius: 2px; background: var(--c); flex: none; }
 .pos { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; border: 1px dashed var(--rule); border-radius: 8px; padding: 6px 8px; }
@@ -258,7 +286,32 @@ circle.rb-icon { stroke-width: 1.4; }
 .alt-h .k { font-size: 11px; font-weight: 700; letter-spacing: .18em; color: var(--muted); }
 .alt-h .st { font-size: 24px; font-weight: 700; letter-spacing: .06em; line-height: 1.25; }
 .alt-h .ln { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--muted); margin-top: 2px; }
-.alt-h .ln i { width: 10px; height: 10px; border-radius: 2px; background: var(--c); }
+.alt-h .ln i { width: 10px; height: 10px; border-radius: 2px; background: var(--c); transform: translateY(-1px); } /* 文字と上下の中心をそろえる */
+.alt-h .ln:has(.pen) { gap: 4px; }
+.alt-h .ln .pen { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+/* 遅延情報の入力 */
+#dlg-delay .dlg-in { gap: 12px; }
+.dl-step { display: flex; align-items: center; justify-content: center; gap: 14px; }
+.dl-step button { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 5px 0 0; border-radius: 22px; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer; }
+.dl-step .v { min-width: 96px; text-align: center; font: 700 30px/1 var(--font-num); color: var(--warn); }
+.dl-step .v.zero { color: var(--muted); }
+.dl-step .v small { font: 600 15px var(--font-body); margin-left: 2px; }
+.dl-reset { align-self: center; border: 0; background: none; font: 700 13px var(--font-body); color: var(--warn); margin-top: -4px; cursor: pointer; }
+.dl-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 10px; max-height: 236px; overflow-y: auto; }
+.dl-list li { display: grid; grid-template-columns: 52px 18px 1fr auto; column-gap: 8px; align-items: center; height: 39px; padding-right: 10px; border-bottom: 1px solid var(--rule); font-size: 14px; cursor: pointer; }
+.dl-list li:last-child { border-bottom: 0; }
+.dl-list li .t { text-align: right; font: 500 13px var(--font-num); color: var(--muted); }
+.dl-list li .b { align-self: stretch; position: relative; background: linear-gradient(var(--c), var(--c)) center / 4px 100% no-repeat; }
+.dl-list li:first-child .b { background-size: 4px 50%; background-position: center bottom; }
+.dl-list li:last-child .b { background-size: 4px 50%; background-position: center top; }
+.dl-list li .b::after { content: ""; box-sizing: border-box; position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--surface); border: 2px solid var(--c); }
+.dl-list li.on { background: color-mix(in srgb, var(--warn) 14%, transparent); font-weight: 700; }
+.dl-list li.on .t { color: var(--ink); }
+.dl-list li .tag { display: inline-flex; align-items: center; height: 22px; padding: 1.5px 9px 0; font-size: 12px; font-weight: 700; color: var(--accent-ink); background: var(--warn); border-radius: 999px; }
+.dl-note { font-size: 12px; color: var(--muted); }
+.dl-act { display: flex; justify-content: flex-end; gap: 10px; }
+.dl-act button { display: inline-flex; align-items: center; justify-content: center; height: 38px; padding: 1.75px 18px 0; border-radius: 19px; font: 600 14px var(--font-body); border: 1px solid var(--rule); background: var(--surface); color: var(--ink); cursor: pointer; }
+.dl-act .ok { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .alt-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .alt-list li { padding: 10px 0; border-bottom: 1px solid var(--rule); display: flex; align-items: flex-start; gap: 12px; }
 .alt-list .dep { font: 600 22px/1.15 var(--font-num); min-width: 66px; }
@@ -352,6 +405,9 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
       </dialog>
       <dialog id="dlg-alt" class="dlg">
         <form method="dialog" class="dlg-in"><div id="alt-body"></div><div class="dlg-act"><button class="btn primary" value="ok">閉じる</button></div></form>
+      </dialog>
+      <dialog id="dlg-delay" class="dlg">
+        <form method="dialog" class="dlg-in" id="dl-body"></form>
       </dialog>
       <div id="results" style="display:flex;flex-direction:column;gap:10px"></div><div id="results-pad" aria-hidden="true"></div>
     </section>
@@ -593,7 +649,9 @@ function buildDays(dir, date, a, b) {
     const d = new Date(date); d.setDate(d.getDate() + off);
     const day = off === 0 && S.ui.day !== "auto" ? S.ui.day : dayTypeOf(d);
     const all = buildLegs(dir, day), sh = off * 86400, tag = `${off}/`;
-    all.legs.slice(a, b).forEach((ts, i) => { for (const t of ts) legs[i].push({ ...t, d: t.d + sh, a: t.a + sh, id: t.id ? tag + t.id : "" }); });
+    const lns = route(dir).lines;
+    // 遅延情報が入っている路線は、その分だけ時刻を遅らせる（sd・sa は時刻表どおりの時刻）
+    all.legs.slice(a, b).forEach((ts, i) => { const dl = delayMin(lns[a + i].prefix) * 60; for (const t of ts) legs[i].push({ ...t, d: t.d + sh + dl, a: t.a + sh + dl, sd: t.d + sh, sa: t.a + sh, dl, id: t.id ? tag + t.id : "" }); });
     all.from.slice(a, b - 1).forEach((m, i) => { for (const [k, v] of m) from[i].set(tag + k, tag + v); });
   }
   for (const l of legs) l.sort((x, y) => x.d - y.d);
@@ -896,7 +954,7 @@ function runSearch() {
   // 開いておくカード：出発指定なら基準時刻後の最初、到着指定なら間に合う最後
   const best = r.lead;
   const xh = transferSecs(dir, true).slice(A, B - 1);
-  lastRes = { ...r, alts: r.list.map(c => sameArrivals(r.built, xh, c)), A, B, dir };
+  lastRes = { ...r, alts: r.list.map(c => sameArrivals(r.built, xh, c)), A, B, dir, base };
   // 同着の経路がある駅には、いちばん近い列車の時刻を書いたボタンを付ける
   const nameRow = (idx, i, name) => {
     const g = lastRes.alts[idx][i];
@@ -911,19 +969,23 @@ function runSearch() {
     let tl = "";
     chain.forEach((e, i) => {
       const t = e.trip, ln = lines[A + i];
-      if (i === 0) tl += `<div class="stop"><div class="t num">${hm(t.d)}</div><div class="dot"></div><div>${nameRow(idx, 0, stations[A])}</div></div>`;
+      if (i === 0) tl += `<div class="stop" style="--cout:${ln.color}"><div class="t num">${LT(t, t.d)}</div><div class="dot"></div><div>${nameRow(idx, 0, stations[A])}</div></div>`;
       else {
         const prev = chain[i - 1].trip;
         const xfInfo = e.through
           ? `<div class="xf">直通・そのまま乗車</div>`
-          : `<div class="xf">乗換 ${ms(r.xf[i - 1])} ・ <span class="slack" style="color:${e.slack < 60 ? "var(--bad)" : e.slack < 180 ? "var(--warn)" : "var(--ok)"}">余裕 ${ms(e.slack)}</span></div>`;
-        tl += `<div class="stop"><div class="t num">${e.through ? hm(t.d) : `${hm(prev.a)}<small>${hm(t.d)}発</small>`}</div><div class="dot"></div><div>${e.through ? `<div class="name">${stations[A + i]}</div>` : nameRow(idx, i, stations[A + i])}${xfInfo}</div></div>`;
+          : `<div class="xf">乗換 ${ms(r.xf[i - 1] + e.slack)} ・ <span class="slack" style="color:${e.slack < 60 ? "var(--bad)" : e.slack < 180 ? "var(--warn)" : "var(--ok)"}">余裕 ${ms(e.slack)}</span></div>`;
+        tl += `<div class="stop" style="--cin:${lines[A + i - 1].color};--cout:${ln.color}"><div class="t num">${e.through ? LT(t, t.d) : `${LT(prev, prev.a)}<small>${LT(t, t.d)}<span class="ja">発</span></small>`}</div><div class="dot"></div><div>${e.through ? `<div class="name">${stations[A + i]}</div>` : nameRow(idx, i, stations[A + i])}${xfInfo}</div></div>`;
       }
-      tl += `<div class="ride" style="--c:${ln.color}"><div class="t"></div><div class="bar"><i></i></div><div class="body">
-        <span class="line-chip" style="--c:${ln.color}"><i></i>${ln.name} ${esc(t.t)}${t.to ? ` ${esc(t.to)}行` : ""} <span class="hint num">${durJa(t.a - t.d)}</span></span>
-        ${e.through && i > 0 ? "" : posText(dir, A + i)}</div></div>`;
+      // 途中駅（駅間データがあれば）。「∨ s駅」で開くと、所要を等分した時刻で並べる
+      const vs = viaStops(stations[A + i], stations[A + i + 1], ln, t.t), segs = vs ? vs.length - 1 : 0, vk = `${t.id}`, open = viaOpen.has(vk);
+      const viaBtn = segs > 1 ? `<button type="button" class="via-b" data-via="${esc(vk)}" aria-expanded="${open}">${VIA_ICON}${segs}駅</button>` : segs === 1 ? `<span class="via-b one">1駅</span>` : "";
+      tl += `<div class="ride" style="--c:${ln.color}"><div class="t rt"><span class="m num">${durJa(t.a - t.d).replace(/[^0-9]+/g, x => `<span class="ja">${x}</span>`)}</span>${viaBtn}</div><div class="bar"><i></i></div><div class="body">
+        <span class="line-chip" style="--c:${ln.color}"><i></i>${ln.name}${t.t ? ` ${esc(t.t)}` : ""}${t.to ? ` ${esc(t.to)}行` : ""}</span>
+        <span class="where${t.dl ? " late" : ""}"><button type="button" class="dly-b" data-dly="${idx}:${i}" aria-label="${ln.name}の遅延情報を入力">${SW_ICON}</button>${t.dl ? `${t.dl / 60}分遅れ` : "定刻通り"}</span></div></div>`;
+      for (let k = 1; k < segs; k++) tl += `<div class="via" data-of="${esc(vk)}" style="--c:${ln.color}"${open ? "" : " hidden"}><div class="t num">${LT(t, Math.round((t.d + (t.a - t.d) * k / segs) / 60) * 60)}</div><div class="bar"><i></i></div><div class="n">${vs[k]}</div></div>`;
     });
-    tl += `<div class="stop"><div class="t num">${hm(last.a)}</div><div class="dot"></div><div><div class="name">${stations[B]}</div></div></div>`;
+    tl += `<div class="stop" style="--cin:${lines[B - 1].color}"><div class="t num">${LT(last, last.a)}</div><div class="dot"></div><div><div class="name">${stations[B]}</div></div></div>`;
     const transfers = chain.slice(1).filter(e => !e.through).length;
     return `<details class="opt"${idx === r.lead ? " data-main" : ""}${idx === best ? " open" : ""}>
       <summary>
@@ -982,9 +1044,94 @@ function openAlt(idx, k) {
   document.activeElement?.blur(); // 開いた直後に閉じるボタンへ枠が出ないように
 }
 $("#results").addEventListener("click", e => {
+  const v = e.target.closest(".via-b[data-via]");
+  if (v) {
+    const k = v.dataset.via, open = !viaOpen.has(k);
+    if (open) viaOpen.add(k); else viaOpen.delete(k);
+    v.setAttribute("aria-expanded", open);
+    v.closest(".tl").querySelectorAll(".via").forEach(el => { if (el.dataset.of === k) el.hidden = !open; });
+    return;
+  }
+  const d = e.target.closest(".dly-b");
+  if (d && lastRes) { const [idx, i] = d.dataset.dly.split(":").map(Number); openDelay(idx, i); return; }
   const b = e.target.closest(".alt-b"); if (!b || !lastRes) return;
   const [idx, k] = b.dataset.alt.split(":").map(Number);
   openAlt(idx, k);
+});
+
+/* ===== 途中駅（駅間データ） ===== */
+// 路線ごとの駅の並び（行きの向き）と、種別ごとに通過する駅。パックの "sec" があればそちらを使う
+const DEFAULT_SEC = {
+  ks: { st: ["三咲", "滝不動", "高根公団", "高根木戸", "北習志野"] },
+  ty: { st: ["北習志野", "飯山満", "東海神", "西船橋"] },
+  tz: { st: ["西船橋", "原木中山", "妙典", "行徳", "南行徳", "浦安", "葛西", "西葛西", "南砂町", "東陽町", "木場", "門前仲町", "茅場町", "日本橋", "大手町", "竹橋", "九段下"],
+        pass: { "通勤快速": ["原木中山", "妙典", "行徳", "南行徳"], "快速": ["原木中山", "妙典", "行徳", "南行徳", "葛西", "西葛西", "南砂町"] } },
+  hz: { st: ["九段下", "半蔵門", "永田町", "青山一丁目", "表参道", "渋谷"] },
+  ko: { st: ["渋谷", "神泉", "駒場東大前"] },
+};
+const VIA_ICON = `<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg>`;
+const viaOpen = new Set();
+// 区間の乗る駅から降りる駅までの、その種別が止まる駅（両端を含む）。データが無ければ null
+function viaStops(from, to, ln, type) {
+  const d = (S.sec || {})[ln.prefix] || DEFAULT_SEC[ln.prefix];
+  if (!d || !Array.isArray(d.st)) return null;
+  const i = d.st.indexOf(from), j = d.st.indexOf(to);
+  if (i < 0 || j < 0 || i === j) return null;
+  const st = i < j ? d.st.slice(i, j + 1) : d.st.slice(j, i + 1).reverse();
+  const skip = new Set((d.pass || {})[type] || []);
+  return st.filter((n, k) => k === 0 || k === st.length - 1 || !skip.has(n));
+}
+
+/* ===== 遅延情報（路線ごと・手入力。更新から3時間で消える） ===== */
+const DELAY_TTL = 3 * 3600 * 1000;
+const SW_ICON = `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="9.2" r="5.3"/><path d="M8 9.2V6.4M6.4 1.8h3.2M8 1.8v2.1M12.3 4.6l1-1"/></svg>`;
+const PEN_ICON = `<svg class="pen" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.6 2.6l2.8 2.8-7.7 7.7-3.5.7.7-3.5z M9.2 4l2.8 2.8"/></svg>`;
+function delayRec(prefix) {
+  const r = (S.delay || {})[prefix];
+  return r && Date.now() - r.at < DELAY_TTL ? r : null;
+}
+const delayMin = prefix => delayRec(prefix)?.min || 0;
+// 遅れている列車の時刻は橙で出す
+const LT = (trip, sec) => trip.dl ? `<span class="lt">${hm(sec)}</span>` : hm(sec);
+let dlEdit = null;
+function openDelay(idx, i) {
+  const { list, A, dir, base } = lastRes, { stations, lines } = route(dir), ln = lines[A + i], t = list[idx][i].trip;
+  const vs = viaStops(stations[A + i], stations[A + i + 1], ln, t.t) || [stations[A + i], stations[A + i + 1]], segs = vs.length - 1;
+  // 時刻表どおりの各駅の時刻（所要を等分）
+  const plan = vs.map((n, k) => ({ n, sec: Math.round((t.sd + (t.sa - t.sd) * k / segs) / 60) * 60 }));
+  dlEdit = { prefix: ln.prefix, name: ln.name, color: ln.color, plan, base, min: delayMin(ln.prefix), sel: -1 };
+  drawDelay();
+  $("#dlg-delay").showModal();
+  document.activeElement?.blur();
+}
+function drawDelay() {
+  const e = dlEdit, rec = delayRec(e.prefix), now = (Date.now() - e.base) / 1000;
+  const rows = e.plan.map((p, k) => `<li data-k="${k}" class="${k === e.sel ? "on" : ""}"><span class="t">${hm(p.sec)}${k === 0 ? `<span class="ja">発</span>` : ""}</span><span class="b"></span><span>${p.n}</span>${k === e.sel ? `<span class="tag">${hm(now)} 現在</span>` : "<span></span>"}</li>`).join("");
+  $("#dl-body").innerHTML = `<h2 class="alt-h" style="--c:${e.color}"><span class="k">遅延情報</span><span class="st">${e.name}</span><span class="ln">${rec ? `${PEN_ICON}最終更新 ${hm((rec.at - e.base) / 1000)}` : "未入力"}</span></h2>
+    <div class="dl-step"><button type="button" data-step="-1" aria-label="1分減らす">−</button><span class="v${e.min ? "" : " zero"}">${e.min}<small>分</small></span><button type="button" data-step="1" aria-label="1分増やす">＋</button></div>
+    <button type="button" class="dl-reset">リセット</button>
+    <ul class="dl-list" style="--c:${e.color}">${rows}</ul>
+    <div class="dl-note">遅延情報は更新後3時間でリセットされます。</div>
+    <div class="dl-act"><button type="button" value="cancel" class="no">やめる</button><button type="button" class="ok">更新</button></div>`;
+}
+$("#dl-body").addEventListener("click", ev => {
+  const e = dlEdit; if (!e) return;
+  const st = ev.target.closest("[data-step]");
+  if (st) { e.min = Math.max(0, Math.min(180, e.min + +st.dataset.step)); e.sel = -1; drawDelay(); return; }
+  if (ev.target.closest(".dl-reset")) { e.min = 0; e.sel = -1; drawDelay(); return; }
+  const li = ev.target.closest(".dl-list li");
+  if (li) {
+    // 電車がいま選んだ駅にいる → 時刻表のその駅の時刻との差が遅れ
+    const k = +li.dataset.k, now = (Date.now() - e.base) / 1000;
+    e.sel = k; e.min = Math.max(0, Math.round((now - e.plan[k].sec) / 60));
+    const sc = $("#dl-body .dl-list").scrollTop; drawDelay(); $("#dl-body .dl-list").scrollTop = sc; return;
+  }
+  if (ev.target.closest(".no")) { $("#dlg-delay").close(); return; }
+  if (ev.target.closest(".ok")) {
+    S.delay = S.delay || {};
+    if (e.min > 0) S.delay[e.prefix] = { min: e.min, at: Date.now() }; else delete S.delay[e.prefix];
+    save(); $("#dlg-delay").close(); runSearch();
+  }
 });
 function tickCountdown() {
   const now = Date.now();
@@ -1238,6 +1385,8 @@ function applyPack(text) {
     done.push(`${m[1] === "out" ? "行き" : "帰り"} ${stations[+m[2]]}→${stations[+m[2] + 1]}（${m[3] === "wd" ? "平日" : "土休日"}・${ok.length}本）`);
   }
   if (!done.length) return "取り込める区間がありませんでした。";
+  // 駅間データ（途中駅の並びと通過駅）
+  if (d.sec && typeof d.sec === "object") S.sec = Object.fromEntries(Object.entries(d.sec).filter(([, v]) => v && Array.isArray(v.st)));
   if (d.links) for (const [k, v] of Object.entries(d.links)) if (/^(out|in):(wd|hd)$/.test(k) && Array.isArray(v)) S.links[k] = v;
   normalizeTrains();
   save(); searched = false; render();
