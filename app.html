@@ -180,7 +180,7 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
    中はダークでも白、文字は黒。直径 18px・縁 3px。番号は下2桁 */
 .ride .body .tid { position: absolute; left: -17px; top: 23.75px; transform: translate(-50%, -50%); z-index: 1; display: block; overflow: visible; } /* 丸と数字を一緒に描くので、置き場所に端数があっても数字は丸の中心からずれない */
 .ride .body .tid circle { fill: #FFFFFF; stroke: var(--c); stroke-width: 3px; }
-.ride .body .tid text { fill: #12161C; font: 700 10px var(--font-body); text-anchor: middle; }
+.ride .body .tid text { fill: #12161C; font: 700 var(--tidf, 11px) var(--font-body); text-anchor: middle; }
 .tl > .stop:first-child + .ride .body .tid { top: 23.25px; }
 .ride .body .where.late { color: var(--warn); font-weight: 700; }
 .dly-b { display: inline-flex; align-items: center; justify-content: center; width: 11.9px; height: 16px; margin: 0 0 0 -0.95px; transform: translate(1px, -1.75px); /* ストップウォッチは 1px 右 */ padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
@@ -1053,10 +1053,11 @@ function runSearch() {
       // 番線：降車不要で通り抜ける側は出さない
       const g = lastRes.alts[idx][i], thruNext = chain[i + 1]?.through;
       const pd = e.through ? "" : platOf(dir, stations[A + i])[1], pa = thruNext ? "" : platOf(dir, stations[A + i + 1])[0];
-      const pf = pd || pa ? `<span class="where pf">${TRAIN_ICON}${pd ? `${esc(pd)}番線発` : ""}${pd && pa ? "→" : ""}${pa ? `${esc(pa)}番線着` : ""}</span>` : "";
+      const no = (/(\d+)$/.exec(t.id || "") || [])[1], plat = `${pd ? `${esc(pd)}番線発` : ""}${pd && pa ? "→" : ""}${pa ? `${esc(pa)}番線着` : ""}`;
+      const pf = no || plat ? `<span class="where pf">${TRAIN_ICON}${no ? `${+no}号` : ""}${no && plat ? " / " : ""}${plat}</span>` : "";
       const alt = g.length ? `<button type="button" class="alt-b" data-alt="${idx}:${i}">${ALT_ICON}<span>${hm(g[0][i].trip.d)}発<br>も同着</span></button>` : "";
       tl += `<div class="ride${i > 0 && i === chain.length - 1 ? " lastride" : ""}" style="--c:${ln.color}"><div class="t rt"><span class="m num">${durJa(t.a - t.d).replace(/[^0-9]+/g, x => `<span class="ja">${x}</span>`)}</span>${viaBtn}</div><div class="bar"><i></i></div><div class="body">
-        ${tidBadge(t.id)}<span class="line-chip" style="--c:${ln.color}">${ln.name}${t.t ? ` ${esc(t.t)}` : ""}${t.to ? ` ${esc(t.to)}行` : ""}</span>
+        ${symBadge(ln)}<span class="line-chip" style="--c:${ln.color}">${ln.name}${t.t ? ` ${esc(t.t)}` : ""}${t.to ? ` ${esc(t.to)}行` : ""}</span>
         ${pf}<span class="where${t.dl ? " late" : ""}"><button type="button" class="dly-b" data-dly="${idx}:${i}" aria-label="${ln.name}の遅延情報を入力">${SW_ICON}</button>${t.dl ? `${t.dl / 60}分遅れ` : "定刻通り"}</span>${alt}</div></div>`;
       for (let k = 1; k < segs; k++) tl += `<div class="via" data-of="${esc(vk)}" style="--c:${ln.color}"${open ? "" : " hidden"}><div class="t num">${LT(t, Math.round((t.d + (t.a - t.d) * k / segs) / 60) * 60)}</div><div class="bar"><i></i></div><div class="n">${vs[k]}</div></div>`;
     });
@@ -1072,7 +1073,7 @@ function runSearch() {
     </details>`;
   }).join("");
   tickCountdown();
-  snapTid();
+  fitSym(); snapTid();
   if (S.ui.view === "search") placeResults();
 }
 // 前の案は固定部分の奥に隠し、上にスクロールすると見えるようにする
@@ -1127,9 +1128,9 @@ function snapTid() {
   const off = ts.map(t => { const r = t.getBoundingClientRect(); if (!r.height) return [0, 0]; const cy = r.top + scrollY + r.height / 2; const cx = r.left + scrollX + r.width / 2; return [Math.round(cy) - cy, Math.round(cx) - cx]; });
   ts.forEach((t, i) => { t.style.margin = `${off[i][0]}px 0 0 ${off[i][1]}px`; });
 }
-new ResizeObserver(() => snapTid()).observe($("#results"));
+new ResizeObserver(() => { fitSym(); snapTid(); }).observe($("#results"));
 addEventListener("resize", snapTid);
-document.fonts?.ready.then(snapTid);
+document.fonts?.ready.then(() => { fitSym(); snapTid(); });
 $("#results").addEventListener("click", e => {
   const v = e.target.closest(".via-b[data-via]");
   if (v) {
@@ -1174,7 +1175,12 @@ const DELAY_TTL = 3 * 3600 * 1000;
 const TRAIN_ICON = `<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2.5" y="1" width="7" height="8" rx="1.6"/><path d="M2.5 5.5h7M4.5 7.3h0M7.5 7.3h0M4 9 3 11M8 9l1 2"/></svg>`;
 // 列車ID（例 tz23）の番号だけを、路線の上に丸い印で出す（路線の記号は出さない）
 const TID_D = 22; // 列車IDの丸の直径（縁 3px 込み）
-const tidBadge = id => { const m = /([a-z]+)(\d+)$/i.exec(id || ""); return m ? `<svg class="tid" viewBox="0 0 ${TID_D} ${TID_D}" style="width:${TID_D}px;height:${TID_D}px" role="img" aria-label="列車ID ${esc(id)}"><circle cx="${TID_D / 2}" cy="${TID_D / 2}" r="${TID_D / 2 - 1.5}"/><text x="${TID_D / 2}" y="${TID_D / 2}" dy=".385em">${m[2].slice(-2)}</text></svg>` : ""; }; // 3桁以上は下2桁だけ
+// 路線記号の印。英字は数字より横に広いので、幅が TID_W を超える記号は fitSym() で横を詰める（縦長に見える）
+const LINE_SYM = { "京成松戸線": "KS", "東葉高速線": "TR", "東京メトロ東西線": "T", "東京メトロ半蔵門線": "Z", "京王井の頭線": "IN" };
+const symOf = ln => ln.sym || LINE_SYM[ln.name] || (ln.prefix || "").toUpperCase();
+const TID_W = 11;
+const symBadge = ln => { const k = symOf(ln); return k ? `<svg class="tid" viewBox="0 0 ${TID_D} ${TID_D}" style="width:${TID_D}px;height:${TID_D}px" role="img" aria-label="路線記号 ${esc(k)}"><circle cx="${TID_D / 2}" cy="${TID_D / 2}" r="${TID_D / 2 - 1.5}"/><text x="${TID_D / 2}" y="${TID_D / 2}" dy=".36em">${esc(k)}</text></svg>` : ""; };
+function fitSym() { document.querySelectorAll("#results .tid text:not([textLength])").forEach(t => { const w = t.getComputedTextLength(); if (w > TID_W) { t.setAttribute("textLength", TID_W); t.setAttribute("lengthAdjust", "spacingAndGlyphs"); } }); }
 const SW_ICON = `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="9.2" r="5.3"/><path d="M8 9.2V6.4M6.4 1.8h3.2M8 1.8v2.1M12.3 4.6l1-1"/></svg>`;
 const PEN_ICON = `<svg class="pen" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.6 2.6l2.8 2.8-7.7 7.7-3.5.7.7-3.5z M9.2 4l2.8 2.8"/></svg>`;
 function delayRec(prefix) {
