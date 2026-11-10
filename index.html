@@ -176,7 +176,7 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .via .n { font-size: 13px; color: var(--muted); padding-top: 3px; }
 .ride .body .where { display: flex; align-items: center; gap: 4.5px; font-size: 12.5px; line-height: 16px; color: var(--muted); }
 .ride .body .pf svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; flex: none; transform: translate(0.1px, -1.4px); } /* 電車マークの位置の微調整（行ごと 0.3px 上げた分を戻して、マークの位置は据え置き） */
-.ride .body .pf { position: relative; top: 1px; gap: 2.5px; } /* 「〇〇号」。マークとの間を 2px 詰める。「定刻通り」より 1px 下げる（電車マークは上が重く見えるため） */
+.ride .body .pf { gap: 2.5px; } /* 「KS10」のような列車番号。マークとの間を 2px 詰める */
 .ride .body .row2 { display: flex; align-items: center; gap: 8.23px; } /* 「号」からストップウォッチまでの間を、桁数によらず 2桁のときと同じに */
 /* 列車IDの印：路線の線の中心、路線名の行と次の行の境目の高さに置く（本文の左端から 17px 左が線の中心）。
    中はダークでも白、文字は黒。直径 18px・縁 3px。番号は下2桁 */
@@ -1055,8 +1055,8 @@ function runSearch() {
       const viaBtn = segs > 1 ? `<button type="button" class="via-b" data-via="${esc(vk)}" aria-expanded="${open}">${VIA_ICON}${segs}駅</button>` : segs === 1 ? `<span class="via-b one">1駅</span>` : "";
       // 番線：降車不要で通り抜ける側は出さない
       const g = lastRes.alts[idx][i];
-      const no = (/(\d+)$/.exec(t.id || "") || [])[1]; // 列車IDの数字を「〇〇号」で（番線は出さない）
-      const pf = no ? `<span class="where pf">${TRAIN_ICON}${+no}号</span>` : "";
+      const no = (/(\d+)$/.exec(t.id || "") || [])[1]; // 列車番号を「路線記号＋IDの数字」で（例：KS10。番線は出さない）
+      const pf = no ? `<span class="where pf">${TRAIN_ICON}${esc(symOf(ln))}${+no}</span>` : "";
       const alt = g.length ? `<button type="button" class="alt-b" data-alt="${idx}:${i}">${ALT_ICON}<span>${hm(g[0][i].trip.d)}発<br>も同着</span></button>` : "";
       tl += `<div class="ride${i > 0 && i === chain.length - 1 ? " lastride" : ""}" style="--c:${ln.color}"><div class="t rt"><span class="m num">${durJa(t.a - t.d).replace(/[^0-9]+/g, x => `<span class="ja">${x}</span>`)}</span>${viaBtn}</div><div class="bar"><i></i></div><div class="body">
         ${symBadge(ln)}<span class="line-chip" style="--c:${ln.color}">${ln.name}${t.t ? ` ${esc(t.t)}` : ""}${t.to ? ` ${esc(t.to)}行` : ""}</span>
@@ -1177,7 +1177,7 @@ const DELAY_TTL = 3 * 3600 * 1000;
 const TRAIN_ICON = `<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2.5" y="1" width="7" height="8" rx="1.6"/><path d="M2.5 5.5h7M4.5 7.3h0M7.5 7.3h0M4 9 3 11M8 9l1 2"/></svg>`;
 // 列車ID（例 tz23）の番号だけを、路線の上に丸い印で出す（路線の記号は出さない）
 const TID_D = 22; // 列車IDの丸の直径（縁 3px 込み）
-// 路線記号の印。英字は数字より横に広いので、幅が TID_W を超える記号は fitSym() で横を詰める（縦長に見える）
+// 路線記号の印。記号はパックの lines[].sym（なければ下の表）。prefix は内部のキー（列車ID・遅延・停車データ）なので変えない。英字は数字より横に広いので、幅が TID_W を超える記号は fitSym() で横を詰める（縦長に見える）
 const LINE_SYM = { "京成松戸線": "KS", "東葉高速線": "TR", "東京メトロ東西線": "T", "東京メトロ半蔵門線": "Z", "京王井の頭線": "IN" };
 const symOf = ln => ln.sym || LINE_SYM[ln.name] || (ln.prefix || "").toUpperCase();
 const TID_W = 11;
@@ -1469,7 +1469,7 @@ function applyPack(text) {
     if (!Array.isArray(r.stations) || !Array.isArray(r.lines) || r.lines.length !== r.stations.length - 1) return "パックの経路が読めません。";
     const changed = !S.needRoute && !sameRoute(r, baseRoute());
     delete S.needRoute;
-    S.route = { stations: r.stations, lines: r.lines.map(l => ({ name: l.name, prefix: l.prefix, ...(l.color ? { color: l.color } : {}) })), through: r.through || [], ...(r.plat ? { plat: r.plat } : {}) };
+    S.route = { stations: r.stations, lines: r.lines.map(l => ({ name: l.name, prefix: l.prefix, ...(l.sym ? { sym: l.sym } : {}), ...(l.color ? { color: l.color } : {}) })), through: r.through || [], ...(r.plat ? { plat: r.plat } : {}) };
     if (changed) {
       // 駅が変わったら、古い経路の時刻表と乗車位置は捨てる（乗換時間は駅名が同じなら残る）
       S.tt = {}; S.sample = {}; S.links = {}; S.pos = {};
