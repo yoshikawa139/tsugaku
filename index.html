@@ -140,10 +140,11 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 #results.classic .stop { margin: 0; }
 #results.classic .stop.tight .dot { background: none; }
 #results.classic .stop.xs { --mid: 12px; }
-#results.classic .stop.thru { --mid: 19.98px; } /* 「…」は駅の高さのちょうど真ん中 */
-#results.classic .stop .t small { color: var(--ink); } /* 着・発とも小さい字で黒 */
-#results.classic .stop:is(.xs, .thru) .t { padding-top: 1.75px; } /* 着の字の中心を駅名の字の中心にそろえる */
-#results.classic .stop .t small + small { margin-top: -1.7px; } /* 着と発の間を v47 の 4/6（6.3px）に */
+#results.classic .stop.thru { --mid: 12px; } /* 「…」の2点目を駅名・着時刻の高さ（乗換駅の丸と同じ）に */
+/* 上の点の 4px 上で前の区間の線を切り、丸い端を付ける（線の上に背景色を重ねて隠す） */
+#results.classic .stop.thru .dot .a { top: calc(var(--mid) - 19px); height: 8px; background: var(--surface); border-radius: 0; }
+#results.classic .stop.thru .dot .a::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--cin); border-radius: 0 0 3px 3px; }
+#results.classic .stop .t small { color: var(--muted); margin-top: -3.17px; } /* 着時刻と「〇:〇〇発」の間を v47 の 4/6 に */
 #results.classic .stop .xf { margin-top: -2.67px; } /* 駅名と乗換の間を v47 の 4/6 に */
 #results.classic .stop.thru .name { color: var(--ink); }
 #results.classic .ride { --pt: 2.86px; --pb: 8px; --b1: 7.83px; grid-template-rows: calc(var(--pt) + 52px + var(--pb)); }
@@ -1045,7 +1046,7 @@ function runSearch() {
         const xfInfo = e.through
           ? `<div class="xf">降車不要 / 停車 ${ms(t.d - prev.a)}</div>`
           : `<div class="xf">乗換 ${ms(r.xf[i - 1] + e.slack)} / <span class="slack" style="color:${e.slack < 60 ? "var(--bad)" : e.slack < 180 ? "var(--warn)" : "var(--ok)"}">余裕 ${ms(e.slack)}</span></div>`;
-        if (S.ui.classic) tl += `<div class="stop ${e.through ? "thru" : "xs"}${i > 1 ? " tight" : ""}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color}"><div class="t num"><small>${LT(prev, prev.a)}<span class="ja">着</span></small><small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot">${e.through ? `<i class="a"></i><i class="b"></i>` : ""}</div><div><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
+        if (S.ui.classic) tl += `<div class="stop ${e.through ? "thru" : "xs"}${i > 1 ? " tight" : ""}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color}"><div class="t num">${LT(prev, prev.a)}<small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot">${e.through ? `<i class="a"></i><i class="b"></i>` : ""}</div><div><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
         else if (!e.through) tl += `<div class="stop xs${i > 1 ? " tight" : ""}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color};--mid:19.6px"><div class="t num"><small>${LT(prev, prev.a)}<span class="ja">着</span></small><small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot"></div><div class="row1"><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
         else tl += `<div class="stop thru${i > 1 ? " tight" : ""}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color};--mid:19.6px"><div class="t num"><small>${LT(prev, prev.a)}<span class="ja">着</span></small><small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot"><i class="a"></i><i class="b"></i></div><div class="row1"><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
       }
