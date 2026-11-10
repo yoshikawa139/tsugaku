@@ -105,6 +105,13 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
    終点の丸の上は 12px で、乗換駅の 19.6px との差を足し戻す */
 .stop.tight { margin-top: -7.83px; }
 .stop.last { margin-top: -0.23px; }
+/* 詰めた駅の丸の上に前の区間の線がかからないよう、丸の列は背景色で覆う（自分の線と丸はその上に描く） */
+.stop.tight .dot { background: var(--surface); }
+/* 区間の中の位置は丸からの距離でそろえる：左の「〇分 ∨〇駅」と同着は乗換駅の後の区間、路線名の行は最初の区間に合わせる */
+.tl > .stop:first-child + .ride .rt { padding-top: 11.09px; padding-bottom: 8.17px; } /* 下を詰めて区間の高さは変えない */
+.stop:first-child + .ride .alt-b { top: 9.34px; }
+.stop.xs + .ride .body, .stop.thru + .ride .body { margin: -7.84px 0 7.84px; }
+.stop.xs + .ride .alt-b, .stop.thru + .ride .alt-b { top: 9.84px; }
 /* 乗換駅：着・発の時刻を直通駅と同じ2段にし、色だけ黒にする。丸は着と発のちょうど真ん中、駅名と乗換・余裕はその横に1行で */
 .stop.xs .t small { color: var(--ink); }
 .stop.xs .dot::after { background: linear-gradient(var(--cin) var(--mid), var(--cout) var(--mid)); }
