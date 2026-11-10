@@ -176,7 +176,7 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .ride .body .where { display: flex; align-items: center; gap: 4.5px; font-size: 12.5px; line-height: 16px; color: var(--muted); }
 .ride .body .pf svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; flex: none; transform: translate(0.1px, -1.4px); } /* 電車マークの位置の微調整（行ごと 0.3px 上げた分を戻して、マークの位置は据え置き） */
 .ride .body .pf { gap: 2.5px; } /* 「KS10」のような列車番号。マークとの間を 2px 詰める */
-.ride .body .row2 { display: flex; align-items: center; gap: 8.23px; } /* 「号」からストップウォッチまでの間を、桁数によらず 2桁のときと同じに */
+.ride .body .row2 { position: relative; display: flex; align-items: center; gap: 8.23px; } /* 「号」からストップウォッチまでの間を、桁数によらず 2桁のときと同じに */
 /* 列車IDの印：路線の線の中心、路線名の行と次の行の境目の高さに置く（本文の左端から 17px 左が線の中心）。
    中はダークでも白、文字は黒。直径 18px・縁 3px。番号は下2桁 */
 .ride .body .tid { position: absolute; left: -17px; top: 23.75px; transform: translate(-50%, -50%); z-index: 1; display: block; overflow: visible; } /* 丸と数字を一緒に描くので、置き場所に端数があっても数字は丸の中心からずれない */
@@ -184,7 +184,7 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .ride .body .tid text { fill: #12161C; font: 700 var(--tidf, 11px) var(--font-body); text-anchor: middle; }
 .tl > .stop:first-child + .ride .body .tid { top: 23.25px; }
 .ride .body .where.late { color: var(--warn); font-weight: 700; }
-.dly-b { display: inline-flex; align-items: center; justify-content: center; width: 11.9px; height: 16px; margin: 0 0 0 -0.95px; transform: translate(1px, -2.75px); /* ストップウォッチは 1px 右・2.75px 上 */ padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
+.dly-b { display: inline-flex; align-items: center; justify-content: center; width: 11.9px; height: 16px; margin: 0 0 0 -0.95px; transform: translate(1px, -1.75px); /* ストップウォッチは 1px 右 */ padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
 .dly-b::before { content: ""; position: absolute; inset: -10px -8px; } /* 押しやすいように当たりを広げる */
 .dly-b { position: relative; }
 .dly-b svg { width: 11.9px; height: 11.9px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
@@ -1127,6 +1127,12 @@ function snapTid() {
   ts.forEach(t => { t.style.margin = ""; });
   const off = ts.map(t => { const r = t.getBoundingClientRect(); if (!r.height) return [0, 0]; const cy = r.top + scrollY + r.height / 2; const cx = r.left + scrollX + r.width / 2; return [Math.round(cy) - cy, Math.round(cx) - cx]; });
   ts.forEach((t, i) => { t.style.margin = `${off[i][0]}px 0 0 ${off[i][1]}px`; });
+  // 「列車ID・定刻通り」の行も整数の位置に寄せる。字は整数の位置に丸めて描かれ、マークは丸められないので、
+  // 行の位置の端数によってマークと字の上下の関係が区間ごとに変わってしまう
+  const rs = [...document.querySelectorAll("#results .row2")];
+  rs.forEach(r => { r.style.top = ""; });
+  const ro = rs.map(r => { const b = r.getBoundingClientRect(); if (!b.height) return 0; const y = b.top + scrollY; return Math.round(y) - y; });
+  rs.forEach((r, i) => { r.style.top = `${ro[i]}px`; });
 }
 new ResizeObserver(() => { fitSym(); snapTid(); }).observe($("#results"));
 addEventListener("resize", snapTid);
