@@ -1051,10 +1051,9 @@ function runSearch() {
       const vs = viaStops(stations[A + i], stations[A + i + 1], ln, t.t), segs = vs ? vs.length - 1 : 0, vk = `${t.id}`, open = viaOpen.has(vk);
       const viaBtn = segs > 1 ? `<button type="button" class="via-b" data-via="${esc(vk)}" aria-expanded="${open}">${VIA_ICON}${segs}駅</button>` : segs === 1 ? `<span class="via-b one">1駅</span>` : "";
       // 番線：降車不要で通り抜ける側は出さない
-      const g = lastRes.alts[idx][i], thruNext = chain[i + 1]?.through;
-      const pd = e.through ? "" : platOf(dir, stations[A + i])[1], pa = thruNext ? "" : platOf(dir, stations[A + i + 1])[0];
-      const no = (/(\d+)$/.exec(t.id || "") || [])[1], plat = `${pd ? `${esc(pd)}番線発` : ""}${pd && pa ? "→" : ""}${pa ? `${esc(pa)}番線着` : ""}`;
-      const pf = no || plat ? `<span class="where pf">${TRAIN_ICON}${no ? `${+no}号` : ""}${no && plat ? " / " : ""}${plat}</span>` : "";
+      const g = lastRes.alts[idx][i];
+      const no = (/(\d+)$/.exec(t.id || "") || [])[1]; // 列車IDの数字を「〇〇号」で（番線は出さない）
+      const pf = no ? `<span class="where pf">${TRAIN_ICON}${+no}号</span>` : "";
       const alt = g.length ? `<button type="button" class="alt-b" data-alt="${idx}:${i}">${ALT_ICON}<span>${hm(g[0][i].trip.d)}発<br>も同着</span></button>` : "";
       tl += `<div class="ride${i > 0 && i === chain.length - 1 ? " lastride" : ""}" style="--c:${ln.color}"><div class="t rt"><span class="m num">${durJa(t.a - t.d).replace(/[^0-9]+/g, x => `<span class="ja">${x}</span>`)}</span>${viaBtn}</div><div class="bar"><i></i></div><div class="body">
         ${symBadge(ln)}<span class="line-chip" style="--c:${ln.color}">${ln.name}${t.t ? ` ${esc(t.t)}` : ""}${t.to ? ` ${esc(t.to)}行` : ""}</span>
