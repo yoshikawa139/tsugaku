@@ -180,11 +180,10 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .via .n { font-size: 13px; color: var(--muted); padding-top: 3px; }
 .ride .body .where { display: flex; align-items: center; gap: 4.5px; font-size: 12.5px; line-height: 16px; color: var(--muted); }
 .ride .body .pf svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; flex: none; }
-/* 列車IDの印：路線の線の中心、路線名の行と次の行の境目の高さに置く（本文の左端から 17px 左が線の中心） */
-.ride .body .tid { position: absolute; left: -17px; top: 23.75px; transform: translate(-50%, -50%); z-index: 1; box-sizing: border-box; width: 28px; height: 28px; border-radius: 50%; border: 3.5px solid var(--c); background: var(--surface); color: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; font: 700 8.5px/1 var(--font-num); }
-.ride .body .tid i { font-style: normal; display: block; }
-.ride .body .tid i + i { font-size: 10.5px; margin-top: 0.5px; }
-.ride .body .tid.w3 i + i { font-size: 9px; letter-spacing: -0.4px; }
+/* 列車IDの印：路線の線の中心、路線名の行と次の行の境目の高さに置く（本文の左端から 17px 左が線の中心）。
+   中はダークでも白、文字は黒。直径は --tid（縁 --tidb、番号の字 --tidf、3桁は --tidf3） */
+.ride .body .tid { --tid: 18px; --tidb: 2.5px; --tidf: 8.5px; --tidf3: 7px; position: absolute; left: -17px; top: 23.75px; transform: translate(-50%, -50%); z-index: 1; box-sizing: border-box; width: var(--tid); height: var(--tid); border-radius: 50%; border: var(--tidb) solid var(--c); background: #FFFFFF; color: #12161C; display: flex; align-items: center; justify-content: center; font: 700 var(--tidf)/1 var(--font-num); letter-spacing: -0.3px; }
+.ride .body .tid.w3 { font-size: var(--tidf3); }
 .tl > .stop:first-child + .ride .body .tid { top: 23.25px; }
 .ride .body .where.late { color: var(--warn); font-weight: 700; }
 .dly-b { display: inline-flex; align-items: center; justify-content: center; width: 11.9px; height: 16px; margin: 0 0 0 -0.95px; transform: translateY(-1.75px); padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
@@ -1162,8 +1161,8 @@ function viaStops(from, to, ln, type) {
 /* ===== 遅延情報（路線ごと・手入力。更新から3時間で消える） ===== */
 const DELAY_TTL = 3 * 3600 * 1000;
 const TRAIN_ICON = `<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2.5" y="1" width="7" height="8" rx="1.6"/><path d="M2.5 5.5h7M4.5 7.3h0M7.5 7.3h0M4 9 3 11M8 9l1 2"/></svg>`;
-// 列車ID（例 tz23）を、路線の上に駅ナンバリングのような丸い印で出す：上に記号、下に番号
-const tidBadge = id => { const m = /([a-z]+)(\d+)$/i.exec(id || ""); return m ? `<b class="tid${m[2].length > 2 ? " w3" : ""}" aria-label="列車ID ${esc(id)}"><i>${esc(m[1].toUpperCase())}</i><i>${m[2]}</i></b>` : ""; };
+// 列車ID（例 tz23）の番号だけを、路線の上に丸い印で出す（路線の記号は出さない）
+const tidBadge = id => { const m = /([a-z]+)(\d+)$/i.exec(id || ""); return m ? `<b class="tid${m[2].length > 2 ? " w3" : ""}" aria-label="列車ID ${esc(id)}">${m[2]}</b>` : ""; };
 const SW_ICON = `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="9.2" r="5.3"/><path d="M8 9.2V6.4M6.4 1.8h3.2M8 1.8v2.1M12.3 4.6l1-1"/></svg>`;
 const PEN_ICON = `<svg class="pen" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.6 2.6l2.8 2.8-7.7 7.7-3.5.7.7-3.5z M9.2 4l2.8 2.8"/></svg>`;
 function delayRec(prefix) {
