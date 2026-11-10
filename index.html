@@ -92,74 +92,40 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .opt-sub .oday { color: var(--warn); font-weight: 700; }
 .opt[open] > summary { border-bottom: 1px solid var(--rule); }
 .tl { padding: 6px 14px 14px; display: flex; flex-direction: column; }
-.stop { display: grid; grid-template-columns: 52px 18px 1fr; column-gap: 8px; }
+/* ===== 経路の図 =====
+   位置の基準は2種類の丸。
+   ・駅の丸の中心：駅名・着時刻・「〇:〇〇発」・乗換は、この点からの距離で置く。
+     直通駅は丸の代わりに「…」を置くが、基準の点は乗換駅の丸と同じ高さにあり、「…」はその --dots 下を中心にする。
+   ・路線記号の丸の中心：乗車時間「〇分 ∨〇駅」・路線名・列車IDの行・同着は、この点からの距離で置く。
+   丸どうしの間は、上の駅の丸 → 路線記号の丸が --L、路線記号の丸 → 下の駅の丸が --S。始点駅からの区間だけ上も --S。
+   駅の箱は丸の中心より上の --sa ぶんの高さで、文字は下へはみ出して描く。区間の箱は上の駅の丸の中心から次の駅の箱の上端まで */
+.tl { --L: 58.66px; --S: 44.17px; --sa: 12px; --dots: 7.98px; } /* --dots：直通駅の「…」の中心は、基準の点の 7.98px 下（駅の高さのちょうど真ん中） */
+.stop { display: grid; grid-template-columns: 52px 18px 1fr; column-gap: 8px; grid-template-rows: var(--sa); }
+.stop:last-child { grid-template-rows: auto; } /* 終点だけは中身の高さまで（カードの下の余白のため） */
+/* 駅の文字は、箱の上端（丸の中心の 12px 上）から並べる */
 .stop .t { text-align: right; font-size: 14px; font-weight: 600; padding-top: 1px; }
-.stop .t small { display: block; font-weight: 500; color: var(--muted); font-size: 12px; }
-/* 線は駅の丸の中心で前後の路線の色につなぐ。丸は線の中心に置く */
-.stop .dot { position: relative; }
-.stop .dot::after { content: ""; position: absolute; left: 6px; width: 6px; top: -1px; bottom: -1px; background: linear-gradient(var(--cin, transparent) 13px, var(--cout, transparent) 13px); }
-/* 線は前後の区間と同じ「箱」で描き、上下に1pxずつ重ねる。背景画像だと端数の丸め方が違って横にずれ、要素の境目がちょうど画素の途中に来ると細い隙間が出るため */
-.stop .dot::before { z-index: 1; }
-.stop .dot::before { content: ""; box-sizing: border-box; position: absolute; left: 50%; top: 5px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--surface); border: 3px solid var(--ink); }
-/* 丸と丸の間（区間の高さ）は、いちばん上の区間（始点→最初の乗換駅）に合わせる。
-   乗換駅どうしの区間は丸の下が 18.58px・上が 19.6px で、始点の丸の下 11.25px との差と、最初の区間の上の余白の差 0.5px のぶん詰める。
-   終点の丸の上は 12px で、乗換駅の 19.6px との差を足し戻す */
-.stop.tight { margin-top: -7.83px; }
-.stop.last { margin-top: -0.23px; }
-/* 詰めた駅の丸の上に前の区間の線がかからないよう、丸の列は背景色で覆う（自分の線と丸はその上に描く） */
-.stop.tight .dot { background: var(--surface); }
-/* 区間の中の位置は丸からの距離でそろえる：左の「〇分 ∨〇駅」と同着は乗換駅の後の区間、路線名の行は最初の区間に合わせる */
-.tl > .stop:first-child + .ride .rt { padding-top: 6.26px; padding-bottom: 8.17px; } /* 下を詰めて区間の高さは変えない */
-.stop:first-child + .ride .alt-b { top: 3.75px; }
-.stop.xs + .ride .body, .stop.thru + .ride .body { margin: -7.84px 0 7.84px; }
-.stop.xs + .ride .alt-b, .stop.thru + .ride .alt-b { top: 4.25px; } /* 同着は丸から 15px */
-/* 「〇分 ∨〇駅」は丸から最初の区間は 17.5px、間の区間は 22.34px、最後の区間は 24.5px の位置に置く（区間の高さは変えない） */
-.ride.lastride .rt { padding-top: 5.91px; padding-bottom: 6.84px; }
-/* 乗換駅：着・発の時刻を直通駅と同じ2段にし、色だけ黒にする。丸は着と発のちょうど真ん中、駅名と乗換・余裕はその横に1行で */
-.stop.xs .t small { color: var(--ink); }
-.stop.xs .dot::after { background: linear-gradient(var(--cin) var(--mid), var(--cout) var(--mid)); }
-.stop.xs .dot::before { top: calc(var(--mid) - 7px); }
-.stop.xs .row1, .stop.thru .row1 { display: flex; align-items: baseline; gap: 10px; min-width: 0; margin-top: 8px; }
-.stop .row1 .xf { white-space: nowrap; }
-.stop.thru .name, .stop.thru .t small { color: var(--faint); } /* 直通駅の駅名と着・発の時刻は、ほかより薄い色 */
+.stop .t small { display: block; font-weight: 500; color: var(--muted); font-size: 12px; margin-top: -3.17px; } /* 着時刻と「〇:〇〇発」の間は v47 の 4/6 */
 .stop .name { font-weight: 700; font-size: 15px; }
-/* 降車不要で通り抜ける駅は、丸の代わりに縦の「…」を置く */
-.stop.thru .dot::after { display: none; }
-.stop.thru .dot::before { top: calc(var(--mid) - 3px); width: 6px; height: 6px; margin-left: -3px; border: 0; background: var(--ink); box-shadow: 0 -9px var(--ink), 0 9px var(--ink); }
-.stop.thru .dot i { position: absolute; left: 6px; width: 6px; }
-.stop.thru .dot .a { height: calc(var(--mid) - 15px); } .stop.thru .dot .b { top: calc(var(--mid) + 16px); }
-.stop.thru .dot .a { top: -1px; background: var(--cin); border-radius: 0 0 3px 3px; }
-.stop.thru .dot .b { bottom: -1px; background: var(--cout); border-radius: 3px 3px 0 0; }
-.stop .xf { font-size: 12.5px; color: var(--muted); }
+.stop .xf { font-size: 12.5px; color: var(--muted); margin-top: -2.67px; } /* 駅名と乗換の間は v47 の 4/6 */
 .stop .xf .slack { font-weight: 700; }
-.ride { display: grid; grid-template-columns: 52px 18px 1fr; column-gap: 8px; }
-/* クラシカル：乗換駅・直通駅は着時刻（大）と「〇:〇〇発」（小）、駅名の下に乗換・余裕（v47 の形）。
-   区間の中は、路線名のブロック（B2）の上下の余白をいまの表示と同じにする：
-   上は前の駅の文字の下端から 3.25px（始点の後）／2.86px（ほか）、下は次の駅名の上端まで 8px（終点の前は 7.61px）。
-   「〇分 ∨〇駅」・同着・列車IDは B2 からの距離をいまの表示と同じにする */
-#results.classic .stop { margin: 0; }
-#results.classic .stop.tight .dot { background: none; }
-#results.classic .stop.xs { --mid: 12px; }
-#results.classic .stop.thru { --mid: 19.98px; } /* 「…」は駅の高さのちょうど真ん中 */
-#results.classic .stop .t small { color: var(--muted); margin-top: -3.17px; } /* 着時刻と「〇:〇〇発」の間を v47 の 4/6 に */
-#results.classic .stop .xf { margin-top: -2.67px; } /* 駅名と乗換の間を v47 の 4/6 に */
-#results.classic .stop.thru .name { color: var(--ink); }
-/* 区間の長さ：路線の丸の中心は、上の駅の丸から L＝58.66px、下の駅の丸まで S＝44.17px（乗換駅〜乗換駅の区間が基準）。
-   始点駅からの区間は上下とも S。直通駅の基準は「…」の真ん中の点ではなく、駅名の高さ（乗換駅なら丸がある高さ。真ん中の点より 7.98px 上）。
-   「〇分」・路線名・丸は一緒に動く（--b1） */
-#results.classic .ride { --pt: 2.86px; --pb: 8px; --b1: 7.83px; grid-template-rows: calc(var(--pt) + 52px + var(--pb)); }
-#results.classic .tl > .stop:first-child + .ride { --pt: 3.25px; --b1: 9.67px; --pb: 9.84px; }
-#results.classic .ride .body { margin: 0; padding-top: calc(var(--pt) + var(--b1)); } /* 路線名を「〇分」と同じ高さに */
-#results.classic .ride .rt { padding-top: calc(var(--pt) + var(--b1)); padding-bottom: 0; }
-#results.classic .ride .alt-b { top: calc(var(--pt) + 0.5px); }
-#results.classic .ride .body .tid { top: calc(var(--pt) + var(--b1) + 20px); }
+/* 駅の丸と、丸より上の線（前の路線の色）。丸より下の線は次の区間が描く */
+.stop .dot { position: relative; }
+.stop .dot::after { content: ""; position: absolute; left: 6px; width: 6px; top: -1px; height: calc(var(--sa) + 1px); background: var(--cin, transparent); }
+.stop .dot::before { content: ""; box-sizing: border-box; position: absolute; z-index: 1; left: 50%; top: calc(var(--sa) - 7px); width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--surface); border: 3px solid var(--ink); }
+/* 直通駅：縦の「…」（点の間 9px）。線は「…」の中心の上下 16px を空け、端を丸める */
+.stop.thru .dot::after { height: calc(var(--sa) + var(--dots) - 15px); border-radius: 0 0 3px 3px; }
+.stop.thru .dot::before { top: calc(var(--sa) + var(--dots) - 3px); width: 6px; height: 6px; margin-left: -3px; border: 0; background: var(--ink); box-shadow: 0 -9px var(--ink), 0 9px var(--ink); }
+.stop.thru + .ride .bar i { margin-top: calc(var(--dots) + 16px); border-radius: 3px 3px 0 0; }
+/* 区間 */
+.ride { --up: var(--L); display: grid; grid-template-columns: 52px 18px 1fr; column-gap: 8px; grid-template-rows: calc(var(--up) + var(--S) - var(--sa)); }
+.stop:first-child + .ride { --up: var(--S); }
 .ride .bar { display: flex; justify-content: center; }
 .ride .bar i { width: 6px; background: var(--c); margin: -1px 0; }
-/* 左に「m分 ∨s駅」、右に「■ 路線 種別 行先」と運行情報。上の余白12px・下15px（文字の端どうし） */
-.ride .rt { display: flex; flex-direction: column; align-items: flex-end; padding: 3.75px 0 9px; }
-.stop:first-child + .ride .rt, .stop:first-child + .ride .body { padding-top: 3.25px; }
+/* 区間の文字：路線記号の丸の中心から、「〇分」と路線名の行の上端は 20px 上、列車IDの行の上端は中心の高さ、同着の上端は 27.33px 上 */
+.ride .rt { display: flex; flex-direction: column; align-items: flex-end; padding-top: calc(var(--up) - 20px); }
 .ride .rt .m { font-size: 13px; font-weight: 600; color: var(--muted); line-height: 20px; }
-.ride .body { padding: 3.75px 0 0; display: flex; flex-direction: column; min-width: 0; }
+.ride .body { padding-top: calc(var(--up) - 20px); display: flex; flex-direction: column; min-width: 0; }
+.ride .body .alt-b { top: calc(var(--up) - 27.33px); }
 .ride .body .line-chip { line-height: 20px; }
 .ride .body .line-chip { gap: 0; white-space: pre; display: inline; }
 /* 路線名は路線の色で塗りつぶす（■の代わり） */
@@ -182,10 +148,9 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .ride .body .row2 { position: relative; display: flex; align-items: center; gap: 8.23px; } /* 「号」からストップウォッチまでの間を、桁数によらず 2桁のときと同じに */
 /* 列車IDの印：路線の線の中心、路線名の行と次の行の境目の高さに置く（本文の左端から 17px 左が線の中心）。
    中はダークでも白、文字は黒。直径 18px・縁 3px。番号は下2桁 */
-.ride .body .tid { position: absolute; left: -17px; top: 23.75px; transform: translate(-50%, -50%); z-index: 1; display: block; overflow: visible; } /* 丸と数字を一緒に描くので、置き場所に端数があっても数字は丸の中心からずれない */
+.ride .body .tid { position: absolute; left: -17px; top: var(--up); transform: translate(-50%, -50%); z-index: 1; display: block; overflow: visible; } /* 丸と数字を一緒に描くので、置き場所に端数があっても数字は丸の中心からずれない */
 .ride .body .tid circle { fill: #FFFFFF; stroke: var(--c); stroke-width: 3px; }
 .ride .body .tid text { fill: #12161C; font: 700 var(--tidf, 11px) var(--font-body); text-anchor: middle; }
-.tl > .stop:first-child + .ride .body .tid { top: 23.25px; }
 .ride .body .where.late { color: var(--warn); font-weight: 700; }
 .dly-b { display: inline-flex; align-items: center; justify-content: center; width: 11.9px; height: 16px; margin: 0 0 0 -0.95px; transform: translate(1px, -1.75px); /* ストップウォッチは 1px 右 */ padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
 .dly-b::before { content: ""; position: absolute; inset: -10px -8px; } /* 押しやすいように当たりを広げる */
@@ -477,7 +442,7 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
       <dialog id="dlg-delay" class="dlg">
         <form method="dialog" class="dlg-in" id="dl-body"></form>
       </dialog>
-      <div id="results" class="classic" style="display:flex;flex-direction:column;gap:10px"></div><div id="results-pad" aria-hidden="true"></div>
+      <div id="results" style="display:flex;flex-direction:column;gap:10px"></div><div id="results-pad" aria-hidden="true"></div>
     </section>
 
     <!-- 時刻表 -->
@@ -1050,7 +1015,7 @@ function runSearch() {
         const xfInfo = e.through
           ? `<div class="xf">降車不要 / 停車 ${ms(t.d - prev.a)}</div>`
           : `<div class="xf">乗換 ${ms(r.xf[i - 1] + e.slack)} / <span class="slack" style="color:${e.slack < 60 ? "var(--bad)" : e.slack < 180 ? "var(--warn)" : "var(--ok)"}">余裕 ${ms(e.slack)}</span></div>`;
-        tl += `<div class="stop ${e.through ? "thru" : "xs"}${i > 1 ? " tight" : ""}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color}"><div class="t num">${LT(prev, prev.a)}<small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot">${e.through ? `<i class="a"></i><i class="b"></i>` : ""}</div><div><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
+        tl += `<div class="stop ${e.through ? "thru" : "xs"}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color}"><div class="t num">${LT(prev, prev.a)}<small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot"></div><div><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
       }
       // 途中駅（駅間データがあれば）。「∨ s駅」で開くと、所要を等分した時刻で並べる
       const vs = viaStops(stations[A + i], stations[A + i + 1], ln, t.t), segs = vs ? vs.length - 1 : 0, vk = `${t.id}`, open = viaOpen.has(vk);
@@ -1060,12 +1025,12 @@ function runSearch() {
       const no = (/([a-z]+\d+)$/.exec(t.id || "") || [])[1]; // 列車ID（例：tr10。路線記号の小文字＋番号。番線は出さない）
       const pf = no ? `<span class="where pf">${TRAIN_ICON}${esc(no)}</span>` : "";
       const alt = g.length ? `<button type="button" class="alt-b" data-alt="${idx}:${i}">${ALT_ICON}<span>${hm(g[0][i].trip.d)}発<br>も同着</span></button>` : "";
-      tl += `<div class="ride${i > 0 && i === chain.length - 1 ? " lastride" : ""}" style="--c:${ln.color}"><div class="t rt"><span class="m num">${durJa(t.a - t.d).replace(/[^0-9]+/g, x => `<span class="ja">${x}</span>`)}</span>${viaBtn}</div><div class="bar"><i></i></div><div class="body">
+      tl += `<div class="ride" style="--c:${ln.color}"><div class="t rt"><span class="m num">${durJa(t.a - t.d).replace(/[^0-9]+/g, x => `<span class="ja">${x}</span>`)}</span>${viaBtn}</div><div class="bar"><i></i></div><div class="body">
         ${symBadge(ln)}<span class="line-chip" style="--c:${ln.color}">${ln.name}${t.t ? ` ${esc(t.t)}` : ""}${t.to ? ` ${esc(t.to)}行` : ""}</span>
         <div class="row2">${pf}<span class="where${t.dl ? " late" : ""}"><button type="button" class="dly-b" data-dly="${idx}:${i}" aria-label="${ln.name}の遅延情報を入力">${SW_ICON}</button>${t.dl ? `${t.dl / 60}分遅れ` : "定刻通り"}</span></div>${alt}</div></div>`;
       for (let k = 1; k < segs; k++) tl += `<div class="via" data-of="${esc(vk)}" style="--c:${ln.color}"${open ? "" : " hidden"}><div class="t num">${LT(t, Math.round((t.d + (t.a - t.d) * k / segs) / 60) * 60)}</div><div class="bar"><i></i></div><div class="n">${vs[k]}</div></div>`;
     });
-    tl += `<div class="stop${chain.length > 1 ? " last" : ""}" style="--cin:${lines[B - 1].color}"><div class="t num">${LT(last, last.a)}</div><div class="dot"></div><div><div class="name">${stations[B]}</div></div></div>`;
+    tl += `<div class="stop" style="--cin:${lines[B - 1].color}"><div class="t num">${LT(last, last.a)}</div><div class="dot"></div><div><div class="name">${stations[B]}</div></div></div>`;
     const transfers = chain.slice(1).filter(e => !e.through).length;
     return `<details class="opt"${idx === r.lead ? " data-main" : ""}${idx === best ? " open" : ""}>
       <summary>
