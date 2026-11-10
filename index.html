@@ -134,27 +134,22 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .stop .xf .slack { font-weight: 700; }
 .ride { display: grid; grid-template-columns: 52px 18px 1fr; column-gap: 8px; }
 /* クラシカル：乗換駅・直通駅は着時刻（大）と「〇:〇〇発」（小）、駅名の下に乗換・余裕（v47 の形）。
-   区間の中の配置は丸からの距離のまま、どの駅も丸の上下を D=19.375px ずつ広げる。
-   上の余白は 19.6+D、下の余白は 11.25+D（駅の中身の高さとの差を margin で足し、線は margin の分も伸ばす） */
-#results.classic { --D: 19.375px; }
-.classic .stop { --mt: 0px; --mb: 0px; margin: var(--mt) 0 var(--mb); }
-.classic .stop .dot::after { top: calc(-1px - var(--mt)); bottom: calc(-1px - var(--mb)); background: linear-gradient(var(--cin, transparent) calc(var(--mt) + var(--mid, 12px) + 1px), var(--cout, transparent) calc(var(--mt) + var(--mid, 12px) + 1px)); }
-.classic .tl > .stop:first-child { --mb: var(--D); }
-.classic .stop.xs { --mid: 12px; --mt: calc(7.6px + var(--D)); --mb: calc(var(--D) - 19.375px); }
-.classic .stop.thru { --mid: 21.31px; --mt: calc(19.6px - 21.31px + var(--D)); --mb: calc(11.25px - 21.31px + var(--D)); }
-.classic .stop.thru .dot .a { top: calc(-1px - var(--mt)); height: calc(var(--mid) - 15px + var(--mt)); }
-.classic .stop.thru .dot .b { bottom: calc(-1px - var(--mb)); }
-.classic .stop.last { --mt: calc(7.6px + var(--D)); }
-.classic .stop.tight .dot { background: none; }
-.classic .stop .t small { color: var(--muted); }
-.classic .stop.thru .name { color: var(--ink); }
-.classic .ride { grid-template-rows: 55.25px; }
-.classic .ride .body, .classic .stop.xs + .ride .body, .classic .stop.thru + .ride .body { margin: 0; padding-top: 3.25px; }
-.classic .ride .rt, .classic .tl > .stop:first-child + .ride .rt, .classic .ride.lastride .rt { padding-bottom: 0; }
-.classic .tl > .stop:first-child + .ride .rt { padding-top: 6.26px; }
-.classic .stop.xs + .ride .rt, .classic .stop.thru + .ride .rt { padding-top: 11.09px; }
-.classic .stop + .ride.lastride .rt, .classic .tl > .stop + .ride.lastride .rt { padding-top: 13.24px; }
-.classic .ride .alt-b, .classic .stop.xs + .ride .alt-b, .classic .stop.thru + .ride .alt-b { top: 3.75px; }
+   区間の中は、路線名のブロック（B2）の上下の余白をいまの表示と同じにする：
+   上は前の駅の文字の下端から 3.25px（始点の後）／2.86px（ほか）、下は次の駅名の上端まで 8px（終点の前は 7.61px）。
+   「〇分 ∨〇駅」・同着・列車IDは B2 からの距離をいまの表示と同じにする */
+#results.classic .stop { margin: 0; }
+#results.classic .stop.tight .dot { background: none; }
+#results.classic .stop.xs { --mid: 12px; }
+#results.classic .stop.thru { --mid: 21.31px; }
+#results.classic .stop .t small { color: var(--muted); }
+#results.classic .stop.thru .name { color: var(--ink); }
+#results.classic .ride { --pt: 2.86px; --pb: 8px; --b1: 7.83px; grid-template-rows: calc(var(--pt) + 52px + var(--pb)); }
+#results.classic .tl > .stop:first-child + .ride { --pt: 3.25px; --b1: 3px; }
+#results.classic .ride.lastride { --pb: 7.61px; --b1: 9.98px; }
+#results.classic .ride .body { margin: 0; padding-top: var(--pt); }
+#results.classic .ride .rt { padding-top: calc(var(--pt) + var(--b1)); padding-bottom: 0; }
+#results.classic .ride .alt-b { top: calc(var(--pt) + 0.5px); }
+#results.classic .ride .body .tid { top: calc(var(--pt) + 20px); }
 .ride .bar { display: flex; justify-content: center; }
 .ride .bar i { width: 6px; background: var(--c); margin: -1px 0; }
 /* 左に「m分 ∨s駅」、右に「■ 路線 種別 行先」と運行情報。上の余白12px・下15px（文字の端どうし） */
