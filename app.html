@@ -177,7 +177,9 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .ride .body .pf svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; flex: none; transform: translate(0.1px, -1.7px); } /* 電車マークの位置の微調整 */
 /* 列車IDの印：路線の線の中心、路線名の行と次の行の境目の高さに置く（本文の左端から 17px 左が線の中心）。
    中はダークでも白、文字は黒。直径 18px・縁 3px。番号は下2桁 */
-.ride .body .tid { --tid: 18px; --tidb: 3px; --tidf: 8.5px; --tidf3: 7px; position: absolute; left: -17px; top: 23.75px; transform: translate(-50%, -50%); z-index: 1; box-sizing: border-box; width: var(--tid); height: var(--tid); border-radius: 50%; border: var(--tidb) solid var(--c); background: #FFFFFF; color: #12161C; display: flex; align-items: center; justify-content: center; font: 700 var(--tidf)/1 var(--font-num); letter-spacing: -0.3px; }
+.ride .body .tid { position: absolute; left: -17px; top: 23.75px; transform: translate(-50%, -50%); z-index: 1; display: block; width: 18px; height: 18px; overflow: visible; } /* 丸と数字を一緒に描くので、置き場所に端数があっても数字は丸の中心からずれない */
+.ride .body .tid circle { fill: #FFFFFF; stroke: var(--c); stroke-width: 3px; }
+.ride .body .tid text { fill: #12161C; font: 700 8.5px var(--font-num); text-anchor: middle; }
 .tl > .stop:first-child + .ride .body .tid { top: 23.25px; }
 .ride .body .where.late { color: var(--warn); font-weight: 700; }
 .dly-b { display: inline-flex; align-items: center; justify-content: center; width: 11.9px; height: 16px; margin: 0 0 0 -0.95px; transform: translate(1px, -1.75px); /* ストップウォッチは 1px 右 */ padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
@@ -459,6 +461,7 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
           <h2>検索設定</h2>
           <label class="toggle"><input id="q-relax" type="checkbox"> 余裕をもつ（通常の乗換時間で検索）</label>
           <p class="hint">外すと「急ぎ」の乗換時間で検索します。</p>
+          <label class="toggle"><input id="q-dark" type="checkbox"> ダークモード</label>
           <div class="dlg-act"><button class="btn primary" value="ok">閉じる</button></div>
         </form>
       </dialog>
@@ -468,7 +471,7 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
       <dialog id="dlg-delay" class="dlg">
         <form method="dialog" class="dlg-in" id="dl-body"></form>
       </dialog>
-      <div id="results" style="display:flex;flex-direction:column;gap:10px"></div><div id="results-pad" aria-hidden="true"></div>
+      <div id="results" class="classic" style="display:flex;flex-direction:column;gap:10px"></div><div id="results-pad" aria-hidden="true"></div>
     </section>
 
     <!-- 時刻表 -->
@@ -986,6 +989,7 @@ function renderSearch() {
   $("#mode-arr").setAttribute("aria-pressed", S.ui.mode === "arr");
   $("#q-day").value = S.ui.day;
   $("#q-relax").checked = !!S.ui.relax;
+  $("#q-dark").checked = isDark();
   const live = !S.ui.qTime;
   const ns = searchNow();
   const qSec = live ? ns.sec : toSec(S.ui.qTime);
@@ -1013,7 +1017,6 @@ function runSearch() {
   const date = searchDate(), base = date.getTime();
   const r = search(dir, date, S.ui.mode, qSec, !S.ui.relax, A, B);
   const box = $("#results");
-  box.classList.toggle("classic", !!S.ui.classic); // クラシカル（設定画面から切り替える予定）
   $("#results-pad").style.height = "0px";
   if (r.error) { box.innerHTML = `<div class="panel empty">${r.error}<br><a href="#timetable">時刻表を取り込む</a></div>`; return; }
   if (!r.list.length) { box.innerHTML = `<div class="panel empty">条件に合う経路がありません。時刻を変えてみてください。</div>`; return; }
@@ -1041,9 +1044,7 @@ function runSearch() {
         const xfInfo = e.through
           ? `<div class="xf">降車不要 / 停車 ${ms(t.d - prev.a)}</div>`
           : `<div class="xf">乗換 ${ms(r.xf[i - 1] + e.slack)} / <span class="slack" style="color:${e.slack < 60 ? "var(--bad)" : e.slack < 180 ? "var(--warn)" : "var(--ok)"}">余裕 ${ms(e.slack)}</span></div>`;
-        if (S.ui.classic) tl += `<div class="stop ${e.through ? "thru" : "xs"}${i > 1 ? " tight" : ""}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color}"><div class="t num">${LT(prev, prev.a)}<small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot">${e.through ? `<i class="a"></i><i class="b"></i>` : ""}</div><div><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
-        else if (!e.through) tl += `<div class="stop xs${i > 1 ? " tight" : ""}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color};--mid:19.6px"><div class="t num"><small>${LT(prev, prev.a)}<span class="ja">着</span></small><small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot"></div><div class="row1"><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
-        else tl += `<div class="stop thru${i > 1 ? " tight" : ""}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color};--mid:19.6px"><div class="t num"><small>${LT(prev, prev.a)}<span class="ja">着</span></small><small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot"><i class="a"></i><i class="b"></i></div><div class="row1"><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
+        tl += `<div class="stop ${e.through ? "thru" : "xs"}${i > 1 ? " tight" : ""}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color}"><div class="t num">${LT(prev, prev.a)}<small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot">${e.through ? `<i class="a"></i><i class="b"></i>` : ""}</div><div><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
       }
       // 途中駅（駅間データがあれば）。「∨ s駅」で開くと、所要を等分した時刻で並べる
       const vs = viaStops(stations[A + i], stations[A + i + 1], ln, t.t), segs = vs ? vs.length - 1 : 0, vk = `${t.id}`, open = viaOpen.has(vk);
@@ -1070,6 +1071,7 @@ function runSearch() {
     </details>`;
   }).join("");
   tickCountdown();
+  snapTid();
   if (S.ui.view === "search") placeResults();
 }
 // 前の案は固定部分の奥に隠し、上にスクロールすると見えるようにする
@@ -1116,6 +1118,17 @@ function openAlt(idx, k) {
   $("#dlg-alt").showModal();
   document.activeElement?.blur(); // 開いた直後に閉じるボタンへ枠が出ないように
 }
+// 列車IDの印は、中心を整数の位置に寄せる（最大 0.5px）。数字は整数の位置に丸めて描かれるので、
+// 印の位置に端数があると、印ごとに数字が上下にずれて見える
+function snapTid() {
+  const ts = [...document.querySelectorAll("#results .tid")];
+  ts.forEach(t => { t.style.margin = ""; });
+  const off = ts.map(t => { const r = t.getBoundingClientRect(); if (!r.height) return [0, 0]; const cy = r.top + scrollY + r.height / 2; const cx = r.left + scrollX + r.width / 2; return [Math.round(cy) - cy, Math.round(cx) - cx]; });
+  ts.forEach((t, i) => { t.style.margin = `${off[i][0]}px 0 0 ${off[i][1]}px`; });
+}
+new ResizeObserver(() => snapTid()).observe($("#results"));
+addEventListener("resize", snapTid);
+document.fonts?.ready.then(snapTid);
 $("#results").addEventListener("click", e => {
   const v = e.target.closest(".via-b[data-via]");
   if (v) {
@@ -1159,7 +1172,7 @@ function viaStops(from, to, ln, type) {
 const DELAY_TTL = 3 * 3600 * 1000;
 const TRAIN_ICON = `<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2.5" y="1" width="7" height="8" rx="1.6"/><path d="M2.5 5.5h7M4.5 7.3h0M7.5 7.3h0M4 9 3 11M8 9l1 2"/></svg>`;
 // 列車ID（例 tz23）の番号だけを、路線の上に丸い印で出す（路線の記号は出さない）
-const tidBadge = id => { const m = /([a-z]+)(\d+)$/i.exec(id || ""); return m ? `<b class="tid" aria-label="列車ID ${esc(id)}">${m[2].slice(-2)}</b>` : ""; }; // 3桁以上は下2桁だけ
+const tidBadge = id => { const m = /([a-z]+)(\d+)$/i.exec(id || ""); return m ? `<svg class="tid" viewBox="0 0 18 18" role="img" aria-label="列車ID ${esc(id)}"><circle cx="9" cy="9" r="7.5"/><text x="9" y="12">${m[2].slice(-2)}</text></svg>` : ""; }; // 3桁以上は下2桁だけ
 const SW_ICON = `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="9.2" r="5.3"/><path d="M8 9.2V6.4M6.4 1.8h3.2M8 1.8v2.1M12.3 4.6l1-1"/></svg>`;
 const PEN_ICON = `<svg class="pen" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.6 2.6l2.8 2.8-7.7 7.7-3.5.7.7-3.5z M9.2 4l2.8 2.8"/></svg>`;
 function delayRec(prefix) {
@@ -1327,6 +1340,11 @@ function render() {
 const VIEWS = ["search", "timetable", "transfer", "data"];
 function fromHash() { const h = location.hash.slice(1); S.ui.view = VIEWS.includes(h) ? h : "search"; render(); }
 window.addEventListener("hashchange", fromHash);
+// テーマ：設定画面のチェックで固定。まだ選んでいなければ端末の設定に従う
+const sysDark = matchMedia("(prefers-color-scheme: dark)");
+const isDark = () => S.ui.theme ? S.ui.theme === "dark" : sysDark.matches;
+function applyTheme() { if (S.ui.theme) document.documentElement.dataset.theme = S.ui.theme; else delete document.documentElement.dataset.theme; const c = $("#q-dark"); if (c) c.checked = isDark(); }
+sysDark.addEventListener("change", applyTheme);
 
 /* ===== 操作 ===== */
 document.querySelectorAll("[data-dir]").forEach(b => b.onclick = () => { S.ui.dir = b.dataset.dir; save(); render(); });
@@ -1368,6 +1386,7 @@ function hideTip() {
 document.addEventListener("click", hideTip);
 addEventListener("resize", hideTip);
 $("#q-relax").onchange = e => { S.ui.relax = e.target.checked; save(); render(); };
+$("#q-dark").onchange = e => { S.ui.theme = e.target.checked ? "dark" : "light"; save(); applyTheme(); };
 
 $("#tt-legs").onclick = e => { const b = e.target.closest("[data-leg]"); if (!b) return; S.ui.ttLeg = +b.dataset.leg; save(); renderTimetable(); };
 $("#tt-wd").onclick = () => { S.ui.ttDay = "wd"; save(); renderTimetable(); };
@@ -1507,6 +1526,7 @@ function setRb() {
 }
 addEventListener("resize", () => setRb());
 setHdr(); addEventListener("resize", setHdr);
+applyTheme();
 fromHash();
 setInterval(() => {
   if (S.ui.view !== "search" || S.ui.qTime) return;
