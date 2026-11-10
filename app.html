@@ -107,10 +107,12 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 /* 詰めた駅の丸の上に前の区間の線がかからないよう、丸の列は背景色で覆う（自分の線と丸はその上に描く） */
 .stop.tight .dot { background: var(--surface); }
 /* 区間の中の位置は丸からの距離でそろえる：左の「〇分 ∨〇駅」と同着は乗換駅の後の区間、路線名の行は最初の区間に合わせる */
-.tl > .stop:first-child + .ride .rt { padding-top: 11.09px; padding-bottom: 8.17px; } /* 下を詰めて区間の高さは変えない */
+.tl > .stop:first-child + .ride .rt { padding-top: 5.09px; padding-bottom: 8.17px; } /* 下を詰めて区間の高さは変えない */
 .stop:first-child + .ride .alt-b { top: 9.34px; }
 .stop.xs + .ride .body, .stop.thru + .ride .body { margin: -7.84px 0 7.84px; }
 .stop.xs + .ride .alt-b, .stop.thru + .ride .alt-b { top: 9.84px; }
+/* 「〇分 ∨〇駅」は最初の区間だけ 6px 上、最後の区間だけ 3px 下にずらす（区間の高さは変えない） */
+.ride.lastride .rt { padding-top: 6.75px; padding-bottom: 6px; }
 /* 乗換駅：着・発の時刻を直通駅と同じ2段にし、色だけ黒にする。丸は着と発のちょうど真ん中、駅名と乗換・余裕はその横に1行で */
 .stop.xs .t small { color: var(--ink); }
 .stop.xs .dot::after { background: linear-gradient(var(--cin) var(--mid), var(--cout) var(--mid)); }
@@ -310,14 +312,11 @@ circle.rb-icon { stroke-width: 1.4; }
 .dlg-act { display: flex; justify-content: flex-end; }
 /* 同着：カードの駅のボタンと、押すと開く一覧 */
 .stop .nrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-/* 右端のボタン：駅名の高さに「再検索」、路線名の高さに「〇:〇〇発」（同着）。どちらもアイコンの下に1行。行の高さは変えない。
-   幅を「0:00発」と同じにそろえ、2つの中心軸を合わせる（10時台の時刻は左右に同じだけはみ出す） */
+/* 同着のボタンは路線名の高さの右端に、アイコンの下に「〇:〇〇発／も同着」の2行で置く。行の高さは変えない */
 .stop, .ride .body { position: relative; }
-.re-b, .alt-b { position: absolute; right: 0; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 0; border: 0; background: transparent; font: 600 10px/11.5px var(--font-body); text-align: center; white-space: nowrap; cursor: pointer; }
-.re-b, .alt-b { width: 32.4px; }
-.re-b { top: calc(var(--mid) - 3px); transform: translateY(-50%); color: var(--ink); } /* 同着と重ならないよう、駅名の中心より 3px 上 */
+.alt-b { position: absolute; right: 0; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 0; border: 0; background: transparent; font: 600 11.5px/13px var(--font-body); text-align: center; white-space: nowrap; cursor: pointer; }
 .alt-b { top: 2px; color: var(--accent); }
-.re-b svg, .alt-b svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.alt-b svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 #dlg-alt .dlg-in { gap: 12px; }
 .alt-h { display: flex; flex-direction: column; gap: 2px; line-height: 1.4; padding-bottom: 8px; border-bottom: 3px solid var(--c); }
 .alt-h .k { font-size: 11px; font-weight: 700; letter-spacing: .18em; color: var(--muted); }
@@ -1014,9 +1013,8 @@ function runSearch() {
         const xfInfo = e.through
           ? `<div class="xf">降車不要 / 停車 ${ms(t.d - prev.a)}</div>`
           : `<div class="xf">乗換 ${ms(r.xf[i - 1] + e.slack)} / <span class="slack" style="color:${e.slack < 60 ? "var(--bad)" : e.slack < 180 ? "var(--warn)" : "var(--ok)"}">余裕 ${ms(e.slack)}</span></div>`;
-        const re = `<button type="button" class="re-b" data-re="${idx}:${i}">${RE_ICON}<span>再検索</span></button>`;
-        if (!e.through) tl += `<div class="stop xs${i > 1 ? " tight" : ""}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color};--mid:19.6px"><div class="t num"><small>${LT(prev, prev.a)}<span class="ja">着</span></small><small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot"></div><div class="row1"><div class="name">${stations[A + i]}</div>${xfInfo}</div>${re}</div>`;
-        else tl += `<div class="stop thru${i > 1 ? " tight" : ""}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color};--mid:19.6px"><div class="t num"><small>${LT(prev, prev.a)}<span class="ja">着</span></small><small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot"><i class="a"></i><i class="b"></i></div><div class="row1"><div class="name">${stations[A + i]}</div>${xfInfo}</div>${re}</div>`;
+        if (!e.through) tl += `<div class="stop xs${i > 1 ? " tight" : ""}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color};--mid:19.6px"><div class="t num"><small>${LT(prev, prev.a)}<span class="ja">着</span></small><small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot"></div><div class="row1"><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
+        else tl += `<div class="stop thru${i > 1 ? " tight" : ""}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color};--mid:19.6px"><div class="t num"><small>${LT(prev, prev.a)}<span class="ja">着</span></small><small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot"><i class="a"></i><i class="b"></i></div><div class="row1"><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
       }
       // 途中駅（駅間データがあれば）。「∨ s駅」で開くと、所要を等分した時刻で並べる
       const vs = viaStops(stations[A + i], stations[A + i + 1], ln, t.t), segs = vs ? vs.length - 1 : 0, vk = `${t.id}`, open = viaOpen.has(vk);
@@ -1025,8 +1023,8 @@ function runSearch() {
       const g = lastRes.alts[idx][i], thruNext = chain[i + 1]?.through;
       const pd = e.through ? "" : platOf(dir, stations[A + i])[1], pa = thruNext ? "" : platOf(dir, stations[A + i + 1])[0];
       const pf = pd || pa ? `<span class="where pf">${TRAIN_ICON}${pd ? `${esc(pd)}番線発` : ""}${pd && pa ? "→" : ""}${pa ? `${esc(pa)}番線着` : ""}</span>` : "";
-      const alt = g.length ? `<button type="button" class="alt-b" data-alt="${idx}:${i}">${ALT_ICON}<span>${hm(g[0][i].trip.d)}発</span></button>` : "";
-      tl += `<div class="ride" style="--c:${ln.color}"><div class="t rt"><span class="m num">${durJa(t.a - t.d).replace(/[^0-9]+/g, x => `<span class="ja">${x}</span>`)}</span>${viaBtn}</div><div class="bar"><i></i></div><div class="body">
+      const alt = g.length ? `<button type="button" class="alt-b" data-alt="${idx}:${i}">${ALT_ICON}<span>${hm(g[0][i].trip.d)}発<br>も同着</span></button>` : "";
+      tl += `<div class="ride${i > 0 && i === chain.length - 1 ? " lastride" : ""}" style="--c:${ln.color}"><div class="t rt"><span class="m num">${durJa(t.a - t.d).replace(/[^0-9]+/g, x => `<span class="ja">${x}</span>`)}</span>${viaBtn}</div><div class="bar"><i></i></div><div class="body">
         <span class="line-chip" style="--c:${ln.color}">${ln.name}${t.t ? ` ${esc(t.t)}` : ""}${t.to ? ` ${esc(t.to)}行` : ""}</span>
         ${pf}<span class="where${t.dl ? " late" : ""}"><button type="button" class="dly-b" data-dly="${idx}:${i}" aria-label="${ln.name}の遅延情報を入力">${SW_ICON}</button>${t.dl ? `${t.dl / 60}分遅れ` : "定刻通り"}</span>${alt}</div></div>`;
       for (let k = 1; k < segs; k++) tl += `<div class="via" data-of="${esc(vk)}" style="--c:${ln.color}"${open ? "" : " hidden"}><div class="t num">${LT(t, Math.round((t.d + (t.a - t.d) * k / segs) / 60) * 60)}</div><div class="bar"><i></i></div><div class="n">${vs[k]}</div></div>`;
@@ -1130,7 +1128,6 @@ function viaStops(from, to, ln, type) {
 
 /* ===== 遅延情報（路線ごと・手入力。更新から3時間で消える） ===== */
 const DELAY_TTL = 3 * 3600 * 1000;
-const RE_ICON = `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.6" cy="6.6" r="4.4"/><path d="M9.9 9.9 14 14" stroke-width="2.6"/></svg>`;
 const TRAIN_ICON = `<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2.5" y="1" width="7" height="8" rx="1.6"/><path d="M2.5 5.5h7M4.5 7.3h0M7.5 7.3h0M4 9 3 11M8 9l1 2"/></svg>`;
 const SW_ICON = `<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="9.2" r="5.3"/><path d="M8 9.2V6.4M6.4 1.8h3.2M8 1.8v2.1M12.3 4.6l1-1"/></svg>`;
 const PEN_ICON = `<svg class="pen" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.6 2.6l2.8 2.8-7.7 7.7-3.5.7.7-3.5z M9.2 4l2.8 2.8"/></svg>`;
