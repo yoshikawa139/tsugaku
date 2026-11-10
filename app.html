@@ -184,7 +184,7 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .ride .body .tid text { fill: #12161C; font: 700 var(--tidf, 11px) var(--font-body); text-anchor: middle; }
 .tl > .stop:first-child + .ride .body .tid { top: 23.25px; }
 .ride .body .where.late { color: var(--warn); font-weight: 700; }
-.dly-b { display: inline-flex; align-items: center; justify-content: center; width: 11.9px; height: 16px; margin: 0 0 0 -0.95px; transform: translate(1px, -1.75px); /* ストップウォッチは 1px 右 */ padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
+.dly-b { display: inline-flex; align-items: center; justify-content: center; width: 11.9px; height: 16px; margin: 0 0 0 -0.95px; transform: translate(1px, -2.75px); /* ストップウォッチは 1px 右・2.75px 上 */ padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
 .dly-b::before { content: ""; position: absolute; inset: -10px -8px; } /* 押しやすいように当たりを広げる */
 .dly-b { position: relative; }
 .dly-b svg { width: 11.9px; height: 11.9px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
@@ -1053,8 +1053,8 @@ function runSearch() {
       const viaBtn = segs > 1 ? `<button type="button" class="via-b" data-via="${esc(vk)}" aria-expanded="${open}">${VIA_ICON}${segs}駅</button>` : segs === 1 ? `<span class="via-b one">1駅</span>` : "";
       // 番線：降車不要で通り抜ける側は出さない
       const g = lastRes.alts[idx][i];
-      const no = (/(\d+)$/.exec(t.id || "") || [])[1]; // 列車番号を「路線記号＋IDの数字」で（例：KS10。番線は出さない）
-      const pf = no ? `<span class="where pf">${TRAIN_ICON}${esc(symOf(ln))}${+no}</span>` : "";
+      const no = (/([a-z]+\d+)$/.exec(t.id || "") || [])[1]; // 列車ID（例：tr10。路線記号の小文字＋番号。番線は出さない）
+      const pf = no ? `<span class="where pf">${TRAIN_ICON}${esc(no)}</span>` : "";
       const alt = g.length ? `<button type="button" class="alt-b" data-alt="${idx}:${i}">${ALT_ICON}<span>${hm(g[0][i].trip.d)}発<br>も同着</span></button>` : "";
       tl += `<div class="ride${i > 0 && i === chain.length - 1 ? " lastride" : ""}" style="--c:${ln.color}"><div class="t rt"><span class="m num">${durJa(t.a - t.d).replace(/[^0-9]+/g, x => `<span class="ja">${x}</span>`)}</span>${viaBtn}</div><div class="bar"><i></i></div><div class="body">
         ${symBadge(ln)}<span class="line-chip" style="--c:${ln.color}">${ln.name}${t.t ? ` ${esc(t.t)}` : ""}${t.to ? ` ${esc(t.to)}行` : ""}</span>
@@ -1151,11 +1151,11 @@ $("#results").addEventListener("click", e => {
 // 路線ごとの駅の並び（行きの向き）と、種別ごとに通過する駅。パックの "sec" があればそちらを使う
 const DEFAULT_SEC = {
   ks: { st: ["三咲", "滝不動", "高根公団", "高根木戸", "北習志野"] },
-  ty: { st: ["北習志野", "飯山満", "東海神", "西船橋"] },
-  tz: { st: ["西船橋", "原木中山", "妙典", "行徳", "南行徳", "浦安", "葛西", "西葛西", "南砂町", "東陽町", "木場", "門前仲町", "茅場町", "日本橋", "大手町", "竹橋", "九段下"],
+  tr: { st: ["北習志野", "飯山満", "東海神", "西船橋"] },
+  t: { st: ["西船橋", "原木中山", "妙典", "行徳", "南行徳", "浦安", "葛西", "西葛西", "南砂町", "東陽町", "木場", "門前仲町", "茅場町", "日本橋", "大手町", "竹橋", "九段下"],
         pass: { "通勤快速": ["原木中山", "妙典", "行徳", "南行徳"], "快速": ["原木中山", "妙典", "行徳", "南行徳", "葛西", "西葛西", "南砂町"] } },
-  hz: { st: ["九段下", "半蔵門", "永田町", "青山一丁目", "表参道", "渋谷"] },
-  ko: { st: ["渋谷", "神泉", "駒場東大前"] },
+  z: { st: ["九段下", "半蔵門", "永田町", "青山一丁目", "表参道", "渋谷"] },
+  in: { st: ["渋谷", "神泉", "駒場東大前"] },
 };
 const VIA_ICON = `<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg>`;
 const viaOpen = new Set();
@@ -1175,9 +1175,13 @@ const DELAY_TTL = 3 * 3600 * 1000;
 const TRAIN_ICON = `<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2.5" y="1" width="7" height="8" rx="1.6"/><path d="M2.5 5.5h7M4.5 7.3h0M7.5 7.3h0M4 9 3 11M8 9l1 2"/></svg>`;
 // 列車ID（例 tz23）の番号だけを、路線の上に丸い印で出す（路線の記号は出さない）
 const TID_D = 22; // 列車IDの丸の直径（縁 3px 込み）
-// 路線記号の印。記号はパックの lines[].sym（なければ下の表）。prefix は内部のキー（列車ID・遅延・停車データ）なので変えない。英字は数字より横に広いので、幅が TID_W を超える記号は fitSym() で横を詰める（縦長に見える）
-const LINE_SYM = { "京成松戸線": "KS", "東葉高速線": "TR", "東京メトロ東西線": "T", "東京メトロ半蔵門線": "Z", "京王井の頭線": "IN" };
-const symOf = ln => ln.sym || LINE_SYM[ln.name] || (ln.prefix || "").toUpperCase();
+// 路線記号の印。prefix は公式の路線記号の小文字（列車IDは「tr10」の形）で、印には大文字で出す。
+// 英字は数字より横に広いので、幅が TID_W を超える記号は fitSym() で横を詰める（縦長に見える）
+const symOf = ln => (ln.prefix || "").toUpperCase();
+// 以前の独自の記号 → 公式の記号（保存データと古いパックを読み替える）
+const PREFIX_NEW = { ty: "tr", tz: "t", hz: "z", ko: "in" };
+const newPrefix = p => PREFIX_NEW[p] || p;
+const remapKeys = o => o && Object.fromEntries(Object.entries(o).map(([k, v]) => [newPrefix(k), v]));
 const TID_W = 11;
 const symBadge = ln => { const k = symOf(ln); return k ? `<svg class="tid" viewBox="0 0 ${TID_D} ${TID_D}" style="width:${TID_D}px;height:${TID_D}px" role="img" aria-label="路線記号 ${esc(k)}"><circle cx="${TID_D / 2}" cy="${TID_D / 2}" r="${TID_D / 2 - 1.5}"/><text x="${TID_D / 2}" y="${TID_D / 2}" dy=".36em">${esc(k)}</text></svg>` : ""; };
 function fitSym() { document.querySelectorAll("#results .tid text:not([textLength])").forEach(t => { const w = t.getComputedTextLength(); if (w > TID_W) { t.setAttribute("textLength", TID_W); t.setAttribute("lengthAdjust", "spacingAndGlyphs"); } }); }
@@ -1425,6 +1429,10 @@ function ownXf(key) {
 }
 // 以前の形式（実測フラグ・計測記録・徒歩・マージン）を整理する
 function migrate() {
+  // 路線の内部の名前を公式の記号に（ty→tr など）。列車IDは normalizeTrains() が新しい名前で振り直す
+  if (S.route) for (const l of S.route.lines) { l.prefix = newPrefix(l.prefix); delete l.sym; }
+  if (S.sec) S.sec = remapKeys(S.sec);
+  if (S.delay) S.delay = remapKeys(S.delay);
   for (const r of Object.values(S.xf)) {
     if ("measured" in r) r.prov = !r.measured;
     delete r.measured; delete r.mirrorOf; delete r.link; delete r.samples;
@@ -1467,7 +1475,7 @@ function applyPack(text) {
     if (!Array.isArray(r.stations) || !Array.isArray(r.lines) || r.lines.length !== r.stations.length - 1) return "パックの経路が読めません。";
     const changed = !S.needRoute && !sameRoute(r, baseRoute());
     delete S.needRoute;
-    S.route = { stations: r.stations, lines: r.lines.map(l => ({ name: l.name, prefix: l.prefix, ...(l.sym ? { sym: l.sym } : {}), ...(l.color ? { color: l.color } : {}) })), through: r.through || [], ...(r.plat ? { plat: r.plat } : {}) };
+    S.route = { stations: r.stations, lines: r.lines.map(l => ({ name: l.name, prefix: newPrefix(l.prefix), ...(l.color ? { color: l.color } : {}) })), through: r.through || [], ...(r.plat ? { plat: r.plat } : {}) };
     if (changed) {
       // 駅が変わったら、古い経路の時刻表と乗車位置は捨てる（乗換時間は駅名が同じなら残る）
       S.tt = {}; S.sample = {}; S.links = {}; S.pos = {};
@@ -1489,7 +1497,7 @@ function applyPack(text) {
   }
   if (!done.length) return "取り込める区間がありませんでした。";
   // 駅間データ（途中駅の並びと通過駅）
-  if (d.sec && typeof d.sec === "object") S.sec = Object.fromEntries(Object.entries(d.sec).filter(([, v]) => v && Array.isArray(v.st)));
+  if (d.sec && typeof d.sec === "object") S.sec = Object.fromEntries(Object.entries(remapKeys(d.sec)).filter(([, v]) => v && Array.isArray(v.st)));
   if (d.links) for (const [k, v] of Object.entries(d.links)) if (/^(out|in):(wd|hd)$/.test(k) && Array.isArray(v)) S.links[k] = v;
   normalizeTrains();
   save(); searched = false; render();
