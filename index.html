@@ -176,8 +176,8 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .via .n { font-size: 13px; color: var(--muted); padding-top: 3px; }
 .ride .body .where { display: flex; align-items: center; gap: 4.5px; font-size: 12.5px; line-height: 16px; color: var(--muted); }
 .ride .body .pf svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; flex: none; transform: translate(0.1px, -1.4px); } /* 電車マークの位置の微調整（行ごと 0.3px 上げた分を戻して、マークの位置は据え置き） */
-.ride .body .pf { position: relative; top: -0.3px; min-width: 51px; gap: 2.5px; } /* 「〇〇号」。マークとの間を 2px 詰める。幅はマーク 12px＋間 2.5px＋「999号」36.2px */
-.ride .body .row2 { display: flex; align-items: center; gap: 0; }
+.ride .body .pf { position: relative; top: 1px; gap: 2.5px; } /* 「〇〇号」。マークとの間を 2px 詰める。「定刻通り」より 1px 下げる（電車マークは上が重く見えるため） */
+.ride .body .row2 { display: flex; align-items: center; gap: 8.23px; } /* 「号」からストップウォッチまでの間を、桁数によらず 2桁のときと同じに */
 /* 列車IDの印：路線の線の中心、路線名の行と次の行の境目の高さに置く（本文の左端から 17px 左が線の中心）。
    中はダークでも白、文字は黒。直径 18px・縁 3px。番号は下2桁 */
 .ride .body .tid { position: absolute; left: -17px; top: 23.75px; transform: translate(-50%, -50%); z-index: 1; display: block; overflow: visible; } /* 丸と数字を一緒に描くので、置き場所に端数があっても数字は丸の中心からずれない */
