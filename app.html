@@ -107,12 +107,12 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 /* 詰めた駅の丸の上に前の区間の線がかからないよう、丸の列は背景色で覆う（自分の線と丸はその上に描く） */
 .stop.tight .dot { background: var(--surface); }
 /* 区間の中の位置は丸からの距離でそろえる：左の「〇分 ∨〇駅」と同着は乗換駅の後の区間、路線名の行は最初の区間に合わせる */
-.tl > .stop:first-child + .ride .rt { padding-top: 5.09px; padding-bottom: 8.17px; } /* 下を詰めて区間の高さは変えない */
-.stop:first-child + .ride .alt-b { top: 6.34px; }
+.tl > .stop:first-child + .ride .rt { padding-top: 6.26px; padding-bottom: 8.17px; } /* 下を詰めて区間の高さは変えない */
+.stop:first-child + .ride .alt-b { top: 4.75px; }
 .stop.xs + .ride .body, .stop.thru + .ride .body { margin: -7.84px 0 7.84px; }
-.stop.xs + .ride .alt-b, .stop.thru + .ride .alt-b { top: 6.84px; }
-/* 「〇分 ∨〇駅」は最初の区間だけ 6px 上、最後の区間だけ 3px 下にずらす（区間の高さは変えない） */
-.ride.lastride .rt { padding-top: 6.75px; padding-bottom: 6px; }
+.stop.xs + .ride .alt-b, .stop.thru + .ride .alt-b { top: 5.25px; } /* 同着は丸から 16px */
+/* 「〇分 ∨〇駅」は丸から最初の区間は 17.5px、間の区間は 22.34px、最後の区間は 24.5px の位置に置く（区間の高さは変えない） */
+.ride.lastride .rt { padding-top: 5.91px; padding-bottom: 6.84px; }
 /* 乗換駅：着・発の時刻を直通駅と同じ2段にし、色だけ黒にする。丸は着と発のちょうど真ん中、駅名と乗換・余裕はその横に1行で */
 .stop.xs .t small { color: var(--ink); }
 .stop.xs .dot::after { background: linear-gradient(var(--cin) var(--mid), var(--cout) var(--mid)); }
@@ -315,7 +315,7 @@ circle.rb-icon { stroke-width: 1.4; }
 /* 同着のボタンは路線名の高さの右端に、アイコンの下に「〇:〇〇発／も同着」の2行で置く。行の高さは変えない */
 .stop, .ride .body { position: relative; }
 .alt-b { position: absolute; right: 0; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 0; border: 0; background: transparent; font: 600 11.5px/13px var(--font-body); text-align: center; white-space: nowrap; cursor: pointer; }
-.alt-b { top: -1px; color: var(--accent); }
+.alt-b { top: -2.59px; color: var(--accent); }
 .alt-b svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 #dlg-alt .dlg-in { gap: 12px; }
 .alt-h { display: flex; flex-direction: column; gap: 2px; line-height: 1.4; padding-bottom: 8px; border-bottom: 3px solid var(--c); }
