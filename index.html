@@ -144,9 +144,13 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 #results.classic .stop .t small { color: var(--muted); margin-top: -3.17px; } /* 着時刻と「〇:〇〇発」の間を v47 の 4/6 に */
 #results.classic .stop .xf { margin-top: -2.67px; } /* 駅名と乗換の間を v47 の 4/6 に */
 #results.classic .stop.thru .name { color: var(--ink); }
-#results.classic .ride { --pt: 2.86px; --pb: 8px; --b1: 7.83px; grid-template-rows: calc(var(--pt) + 52px + var(--pb)); }
-#results.classic .tl > .stop:first-child + .ride { --pt: 3.25px; --b1: 3px; }
-#results.classic .ride.lastride { --pb: 7.61px; --b1: 9.98px; }
+/* 区間の長さ：路線の丸の中心は、上の駅の丸から L＝58.66px、下の駅の丸まで S＝44.17px（乗換駅〜乗換駅の区間が基準）。
+   始点駅からの区間は上下とも S。直通駅の「…」は乗換駅の丸より 7.98px 下にあるので、その前後の区間で長さを足し引きする。
+   「〇分」・路線名・丸は一緒に動く（--b1） */
+#results.classic .ride { --pt: 2.86px; --pb0: 8px; --b1: 7.83px; --dt: 0px; --dn: 0px; --pb: calc(var(--pb0) + var(--dt) - var(--dn)); grid-template-rows: calc(var(--pt) + 52px + var(--pb)); }
+#results.classic .tl > .stop:first-child + .ride { --pt: 3.25px; --b1: 9.67px; --pb0: 9.84px; }
+#results.classic .ride.from-thru { --dt: 7.99px; --b1: calc(7.83px + var(--dt)); }
+#results.classic .ride.to-thru { --dn: 7.98px; }
 #results.classic .ride .body { margin: 0; padding-top: calc(var(--pt) + var(--b1)); } /* 路線名を「〇分」と同じ高さに */
 #results.classic .ride .rt { padding-top: calc(var(--pt) + var(--b1)); padding-bottom: 0; }
 #results.classic .ride .alt-b { top: calc(var(--pt) + 0.5px); }
@@ -1058,7 +1062,7 @@ function runSearch() {
       const no = (/([a-z]+\d+)$/.exec(t.id || "") || [])[1]; // 列車ID（例：tr10。路線記号の小文字＋番号。番線は出さない）
       const pf = no ? `<span class="where pf">${TRAIN_ICON}${esc(no)}</span>` : "";
       const alt = g.length ? `<button type="button" class="alt-b" data-alt="${idx}:${i}">${ALT_ICON}<span>${hm(g[0][i].trip.d)}発<br>も同着</span></button>` : "";
-      tl += `<div class="ride${i > 0 && i === chain.length - 1 ? " lastride" : ""}" style="--c:${ln.color}"><div class="t rt"><span class="m num">${durJa(t.a - t.d).replace(/[^0-9]+/g, x => `<span class="ja">${x}</span>`)}</span>${viaBtn}</div><div class="bar"><i></i></div><div class="body">
+      tl += `<div class="ride${i > 0 && i === chain.length - 1 ? " lastride" : ""}${i > 0 && e.through ? " from-thru" : ""}${chain[i + 1]?.through ? " to-thru" : ""}" style="--c:${ln.color}"><div class="t rt"><span class="m num">${durJa(t.a - t.d).replace(/[^0-9]+/g, x => `<span class="ja">${x}</span>`)}</span>${viaBtn}</div><div class="bar"><i></i></div><div class="body">
         ${symBadge(ln)}<span class="line-chip" style="--c:${ln.color}">${ln.name}${t.t ? ` ${esc(t.t)}` : ""}${t.to ? ` ${esc(t.to)}行` : ""}</span>
         <div class="row2">${pf}<span class="where${t.dl ? " late" : ""}"><button type="button" class="dly-b" data-dly="${idx}:${i}" aria-label="${ln.name}の遅延情報を入力">${SW_ICON}</button>${t.dl ? `${t.dl / 60}分遅れ` : "定刻通り"}</span></div>${alt}</div></div>`;
       for (let k = 1; k < segs; k++) tl += `<div class="via" data-of="${esc(vk)}" style="--c:${ln.color}"${open ? "" : " hidden"}><div class="t num">${LT(t, Math.round((t.d + (t.a - t.d) * k / segs) / 60) * 60)}</div><div class="bar"><i></i></div><div class="n">${vs[k]}</div></div>`;
