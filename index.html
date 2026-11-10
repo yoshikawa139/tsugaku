@@ -140,10 +140,7 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 #results.classic .stop { margin: 0; }
 #results.classic .stop.tight .dot { background: none; }
 #results.classic .stop.xs { --mid: 12px; }
-#results.classic .stop.thru { --mid: 12px; } /* 「…」の2点目を駅名・着時刻の高さ（乗換駅の丸と同じ）に */
-/* 上の点の 4px 上で前の区間の線を切り、丸い端を付ける（線の上に背景色を重ねて隠す） */
-#results.classic .stop.thru .dot .a { top: calc(var(--mid) - 19px); height: 8px; background: var(--surface); border-radius: 0; }
-#results.classic .stop.thru .dot .a::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--cin); border-radius: 0 0 3px 3px; }
+#results.classic .stop.thru { --mid: 19.98px; } /* 「…」は駅の高さのちょうど真ん中 */
 #results.classic .stop .t small { color: var(--muted); margin-top: -3.17px; } /* 着時刻と「〇:〇〇発」の間を v47 の 4/6 に */
 #results.classic .stop .xf { margin-top: -2.67px; } /* 駅名と乗換の間を v47 の 4/6 に */
 #results.classic .stop.thru .name { color: var(--ink); }
