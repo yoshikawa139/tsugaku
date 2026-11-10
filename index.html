@@ -10,6 +10,7 @@
   --surface: #FFFFFF;
   --ink: #12161C;
   --muted: #5B6573;
+  --faint: #9AA2AD;
   --rule: #D5DBE2;
   --accent: #1C4FD8;
   --accent-ink: #FFFFFF;
@@ -26,14 +27,14 @@
   --font-num: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #0E1217; --surface: #171C23; --ink: #E7ECF2; --muted: #96A1AF; --rule: #2A323C;
+  --bg: #0E1217; --surface: #171C23; --ink: #E7ECF2; --muted: #96A1AF; --faint: #66707D; --rule: #2A323C;
   --accent: #7AA2FF; --accent-ink: #0E1217; --warn: #FBBF24; --warn-bg: #3A2C0B; --ok: #34D399; --bad: #F87171;
   --sel: #FFC000; --sel-ink: #212B3D;
   --none: #69727F;
   --rb-bg: #212B3D; --rb-ink: #E8E8E8; --rb-icon: #D0D1D4; --rb-dot: #D1D1D1; --rb-lab-ink: #212B3D;
   color-scheme: dark } }
 :root[data-theme="dark"] {
-  --bg: #0E1217; --surface: #171C23; --ink: #E7ECF2; --muted: #96A1AF; --rule: #2A323C;
+  --bg: #0E1217; --surface: #171C23; --ink: #E7ECF2; --muted: #96A1AF; --faint: #66707D; --rule: #2A323C;
   --accent: #7AA2FF; --accent-ink: #0E1217; --warn: #FBBF24; --warn-bg: #3A2C0B; --ok: #34D399; --bad: #F87171;
   --sel: #FFC000; --sel-ink: #212B3D;
   --none: #69727F;
@@ -109,9 +110,9 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .stop.tight .dot { background: var(--surface); }
 /* 区間の中の位置は丸からの距離でそろえる：左の「〇分 ∨〇駅」と同着は乗換駅の後の区間、路線名の行は最初の区間に合わせる */
 .tl > .stop:first-child + .ride .rt { padding-top: 6.26px; padding-bottom: 8.17px; } /* 下を詰めて区間の高さは変えない */
-.stop:first-child + .ride .alt-b { top: 4.75px; }
+.stop:first-child + .ride .alt-b { top: 3.75px; }
 .stop.xs + .ride .body, .stop.thru + .ride .body { margin: -7.84px 0 7.84px; }
-.stop.xs + .ride .alt-b, .stop.thru + .ride .alt-b { top: 5.25px; } /* 同着は丸から 16px */
+.stop.xs + .ride .alt-b, .stop.thru + .ride .alt-b { top: 4.25px; } /* 同着は丸から 15px */
 /* 「〇分 ∨〇駅」は丸から最初の区間は 17.5px、間の区間は 22.34px、最後の区間は 24.5px の位置に置く（区間の高さは変えない） */
 .ride.lastride .rt { padding-top: 5.91px; padding-bottom: 6.84px; }
 /* 乗換駅：着・発の時刻を直通駅と同じ2段にし、色だけ黒にする。丸は着と発のちょうど真ん中、駅名と乗換・余裕はその横に1行で */
@@ -120,7 +121,7 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .stop.xs .dot::before { top: calc(var(--mid) - 7px); }
 .stop.xs .row1, .stop.thru .row1 { display: flex; align-items: baseline; gap: 10px; min-width: 0; margin-top: 8px; }
 .stop .row1 .xf { white-space: nowrap; }
-.stop.thru .name { color: var(--muted); } /* 直通駅の駅名は着・発の時刻と同じ色 */
+.stop.thru .name, .stop.thru .t small { color: var(--faint); } /* 直通駅の駅名と着・発の時刻は、ほかより薄い色 */
 .stop .name { font-weight: 700; font-size: 15px; }
 /* 降車不要で通り抜ける駅は、丸の代わりに縦の「…」を置く */
 .stop.thru .dot::after { display: none; }
@@ -132,6 +133,28 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .stop .xf { font-size: 12.5px; color: var(--muted); }
 .stop .xf .slack { font-weight: 700; }
 .ride { display: grid; grid-template-columns: 52px 18px 1fr; column-gap: 8px; }
+/* クラシカル：乗換駅・直通駅は着時刻（大）と「〇:〇〇発」（小）、駅名の下に乗換・余裕（v47 の形）。
+   区間の中の配置は丸からの距離のまま、どの駅も丸の上下を D=19.375px ずつ広げる。
+   上の余白は 19.6+D、下の余白は 11.25+D（駅の中身の高さとの差を margin で足し、線は margin の分も伸ばす） */
+#results.classic { --D: 19.375px; }
+.classic .stop { --mt: 0px; --mb: 0px; margin: var(--mt) 0 var(--mb); }
+.classic .stop .dot::after { top: calc(-1px - var(--mt)); bottom: calc(-1px - var(--mb)); background: linear-gradient(var(--cin, transparent) calc(var(--mt) + var(--mid, 12px) + 1px), var(--cout, transparent) calc(var(--mt) + var(--mid, 12px) + 1px)); }
+.classic .tl > .stop:first-child { --mb: var(--D); }
+.classic .stop.xs { --mid: 12px; --mt: calc(7.6px + var(--D)); --mb: calc(var(--D) - 19.375px); }
+.classic .stop.thru { --mid: 21.31px; --mt: calc(19.6px - 21.31px + var(--D)); --mb: calc(11.25px - 21.31px + var(--D)); }
+.classic .stop.thru .dot .a { top: calc(-1px - var(--mt)); height: calc(var(--mid) - 15px + var(--mt)); }
+.classic .stop.thru .dot .b { bottom: calc(-1px - var(--mb)); }
+.classic .stop.last { --mt: calc(7.6px + var(--D)); }
+.classic .stop.tight .dot { background: none; }
+.classic .stop .t small { color: var(--muted); }
+.classic .stop.thru .name { color: var(--ink); }
+.classic .ride { grid-template-rows: 55.25px; }
+.classic .ride .body, .classic .stop.xs + .ride .body, .classic .stop.thru + .ride .body { margin: 0; padding-top: 3.25px; }
+.classic .ride .rt, .classic .tl > .stop:first-child + .ride .rt, .classic .ride.lastride .rt { padding-bottom: 0; }
+.classic .tl > .stop:first-child + .ride .rt { padding-top: 6.26px; }
+.classic .stop.xs + .ride .rt, .classic .stop.thru + .ride .rt { padding-top: 11.09px; }
+.classic .stop + .ride.lastride .rt, .classic .tl > .stop + .ride.lastride .rt { padding-top: 13.24px; }
+.classic .ride .alt-b, .classic .stop.xs + .ride .alt-b, .classic .stop.thru + .ride .alt-b { top: 3.75px; }
 .ride .bar { display: flex; justify-content: center; }
 .ride .bar i { width: 6px; background: var(--c); margin: -1px 0; }
 /* 左に「m分 ∨s駅」、右に「■ 路線 種別 行先」と運行情報。上の余白12px・下15px（文字の端どうし） */
@@ -316,7 +339,7 @@ circle.rb-icon { stroke-width: 1.4; }
 /* 同着のボタンは路線名の高さの右端に、アイコンの下に「〇:〇〇発／も同着」の2行で置く。行の高さは変えない */
 .stop, .ride .body { position: relative; }
 .alt-b { position: absolute; right: 0; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 0; border: 0; background: transparent; font: 600 11.5px/13px var(--font-body); text-align: center; white-space: nowrap; cursor: pointer; }
-.alt-b { top: -2.59px; color: var(--accent); }
+.alt-b { top: -3.59px; color: var(--accent); }
 .alt-b svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 #dlg-alt .dlg-in { gap: 12px; }
 .alt-h { display: flex; flex-direction: column; gap: 2px; line-height: 1.4; padding-bottom: 8px; border-bottom: 3px solid var(--c); }
@@ -988,6 +1011,7 @@ function runSearch() {
   const date = searchDate(), base = date.getTime();
   const r = search(dir, date, S.ui.mode, qSec, !S.ui.relax, A, B);
   const box = $("#results");
+  box.classList.toggle("classic", !!S.ui.classic); // クラシカル（設定画面から切り替える予定）
   $("#results-pad").style.height = "0px";
   if (r.error) { box.innerHTML = `<div class="panel empty">${r.error}<br><a href="#timetable">時刻表を取り込む</a></div>`; return; }
   if (!r.list.length) { box.innerHTML = `<div class="panel empty">条件に合う経路がありません。時刻を変えてみてください。</div>`; return; }
@@ -1015,7 +1039,8 @@ function runSearch() {
         const xfInfo = e.through
           ? `<div class="xf">降車不要 / 停車 ${ms(t.d - prev.a)}</div>`
           : `<div class="xf">乗換 ${ms(r.xf[i - 1] + e.slack)} / <span class="slack" style="color:${e.slack < 60 ? "var(--bad)" : e.slack < 180 ? "var(--warn)" : "var(--ok)"}">余裕 ${ms(e.slack)}</span></div>`;
-        if (!e.through) tl += `<div class="stop xs${i > 1 ? " tight" : ""}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color};--mid:19.6px"><div class="t num"><small>${LT(prev, prev.a)}<span class="ja">着</span></small><small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot"></div><div class="row1"><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
+        if (S.ui.classic) tl += `<div class="stop ${e.through ? "thru" : "xs"}${i > 1 ? " tight" : ""}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color}"><div class="t num">${LT(prev, prev.a)}<small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot">${e.through ? `<i class="a"></i><i class="b"></i>` : ""}</div><div><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
+        else if (!e.through) tl += `<div class="stop xs${i > 1 ? " tight" : ""}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color};--mid:19.6px"><div class="t num"><small>${LT(prev, prev.a)}<span class="ja">着</span></small><small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot"></div><div class="row1"><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
         else tl += `<div class="stop thru${i > 1 ? " tight" : ""}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color};--mid:19.6px"><div class="t num"><small>${LT(prev, prev.a)}<span class="ja">着</span></small><small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot"><i class="a"></i><i class="b"></i></div><div class="row1"><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
       }
       // 途中駅（駅間データがあれば）。「∨ s駅」で開くと、所要を等分した時刻で並べる
