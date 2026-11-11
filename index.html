@@ -667,7 +667,7 @@ function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } ca
 /* ===== 検索 ===== */
 function legTrips(dir, i, day) {
   return (S.tt[`${dir}:${i}:${day}`] || [])
-    .map(r => ({ d: toSec(r.d), a: toSec(r.a), t: r.t || "", to: r.to || "", id: r.id || "" }))
+    .map(r => ({ d: toSec(r.d), a: toSec(r.a), t: r.t || "", to: r.to || "", id: r.id || "", v: Array.isArray(r.v) ? r.v.map(x => x ? toSec(x) : null) : null }))
     .filter(r => !isNaN(r.d) && !isNaN(r.a) && r.a >= r.d)
     .sort((x, y) => x.d - y.d);
 }
@@ -726,7 +726,7 @@ function buildDays(dir, date, a, b) {
     const all = buildLegs(dir, day), sh = off * 86400, tag = `${off}/`;
     const lns = route(dir).lines;
     // 遅延情報が入っている路線は、その分だけ時刻を遅らせる（sd・sa は時刻表どおりの時刻）
-    all.legs.slice(a, b).forEach((ts, i) => { const dl = delayMin(lns[a + i].prefix) * 60; for (const t of ts) legs[i].push({ ...t, d: t.d + sh + dl, a: t.a + sh + dl, sd: t.d + sh, sa: t.a + sh, dl, id: t.id ? tag + t.id : "" }); });
+    all.legs.slice(a, b).forEach((ts, i) => { const dl = delayMin(lns[a + i].prefix) * 60; for (const t of ts) legs[i].push({ ...t, d: t.d + sh + dl, a: t.a + sh + dl, sd: t.d + sh, sa: t.a + sh, v: t.v && t.v.map(x => x == null ? null : x + sh + dl), sv: t.v && t.v.map(x => x == null ? null : x + sh), dl, id: t.id ? tag + t.id : "" }); });
     all.from.slice(a, b - 1).forEach((m, i) => { for (const [k, v] of m) from[i].set(tag + k, tag + v); });
   }
   for (const l of legs) l.sort((x, y) => x.d - y.d);
@@ -1055,7 +1055,7 @@ function runSearch() {
         tl += `<div class="stop ${e.through ? "thru" : "xs"}" style="--cin:${lines[A + i - 1].color};--cout:${ln.color}"><div class="t num">${LT(prev, prev.a)}<small>${LT(t, t.d)}<span class="ja">発</span></small></div><div class="dot"></div><div><div class="name">${stations[A + i]}</div>${xfInfo}</div></div>`;
       }
       // 途中駅（駅間データがあれば）。「∨ s駅」で開くと、所要を駅間の所要時間で割り振った時刻で並べる
-      const vs = viaStops(stations[A + i], stations[A + i + 1], ln, t.t), segs = vs ? vs.length - 1 : 0, vk = `${t.id}`, open = viaOpen.has(vk), vf = vs && viaFrac(vs, ln, t.t);
+      const vp = viaPlan(stations[A + i], stations[A + i + 1], ln, t), segs = vp ? vp.length - 1 : 0, vk = `${t.id}`, open = viaOpen.has(vk);
       const viaBtn = segs > 1 ? `<button type="button" class="via-b" data-via="${esc(vk)}" aria-expanded="${open}">${VIA_ICON}${segs}駅</button>` : segs === 1 ? `<span class="via-b one">1駅</span>` : "";
       // 番線：降車不要で通り抜ける側は出さない
       const g = lastRes.alts[idx][i];
@@ -1066,7 +1066,7 @@ function runSearch() {
       tl += `<div class="ride" style="--c:${ln.color}"><div class="t rt"><span class="m num">${durJa(t.a - t.d).replace(/[^0-9]+/g, x => `<span class="ja">${x}</span>`)}</span>${viaBtn}</div><div class="bar"><i></i></div><div class="body">
         ${symBadge(ln)}<span class="line-chip" style="--c:${ln.color}">${ln.name}${t.t ? ` ${esc(t.t)}` : ""}${t.to ? ` ${esc(t.to)}行` : ""}</span>
         <div class="row2">${pf}<span class="where${t.dl ? " late" : ""}"><button type="button" class="dly-b" data-dly="${idx}:${i}" aria-label="${ln.name}の運行情報を入力">${SW_ICON}</button>${t.dl ? `${t.dl / 60}分遅れ` : "定刻通り"}</span></div>${alt}</div></div>`;
-      for (let k = 1; k < segs; k++) tl += `<div class="via" data-of="${esc(vk)}" style="--c:${ln.color}"${open ? "" : " hidden"}><div class="t num">${LT(t, Math.round((t.d + (t.a - t.d) * vf[k]) / 60) * 60)}</div><div class="bar"><i></i></div><div class="n">${vs[k]}</div></div>`;
+      for (let k = 1; k < segs; k++) tl += `<div class="via" data-of="${esc(vk)}" style="--c:${ln.color}"${open ? "" : " hidden"}><div class="t num">${LT(t, vp[k].sec)}</div><div class="bar"><i></i></div><div class="n">${vp[k].n}</div></div>`;
     });
     tl += `<div class="stop" style="--cin:${lines[B - 1].color}"><div class="t num">${LT(last, last.a)}</div><div class="dot"></div><div><div class="name">${stations[B]}</div></div></div>`;
     const transfers = chain.slice(1).filter(e => !e.through).length;
@@ -1189,6 +1189,24 @@ function viaStops(from, to, ln, type) {
   const skip = new Set((d.pass || {})[type] || []);
   return st.filter((n, k) => k === 0 || k === st.length - 1 || !skip.has(n));
 }
+// 乗る駅から降りる駅までの止まる駅（両端を含む）と時刻 [{ n: 駅名, sec }]。sched なら遅れを足す前の時刻。駅間データが無ければ null。
+// 列車に途中駅の時刻 v（パックの v を秒にしたもの。進む向きの途中駅ごと、通過は null）があればそれを使い、
+// 無ければ所要を駅間の所要時間（viaFrac）で割り振る
+function viaPlan(from, to, ln, t, sched) {
+  const d0 = sched ? t.sd : t.d, a0 = sched ? t.sa : t.a, v = sched ? t.sv : t.v;
+  const sd = (S.sec || {})[ln.prefix] || DEFAULT_SEC[ln.prefix];
+  if (sd && Array.isArray(sd.st) && Array.isArray(v)) {
+    const i = sd.st.indexOf(from), j = sd.st.indexOf(to);
+    if (i >= 0 && j >= 0 && Math.abs(j - i) - 1 === v.length) {
+      const mid = (i < j ? sd.st.slice(i + 1, j) : sd.st.slice(j + 1, i).reverse()).map((n, k) => ({ n, sec: v[k] })).filter(x => x.sec != null && x.sec >= d0 && x.sec <= a0);
+      return [{ n: from, sec: d0 }, ...mid, { n: to, sec: a0 }];
+    }
+  }
+  const vs = viaStops(from, to, ln, t.t);
+  if (!vs) return null;
+  const f = viaFrac(vs, ln, t.t);
+  return vs.map((n, k) => ({ n, sec: k === 0 ? d0 : k === vs.length - 1 ? a0 : Math.round((d0 + (a0 - d0) * f[k]) / 60) * 60 }));
+}
 // 止まる駅（viaStops の並び）ごとの、乗る駅から降りる駅までの所要の割合（0〜1）。
 // 駅間の所要（sec の minBy[種別] か min）に比例させ、値の無い駅は前後の駅から駅の数で按分する。データが無ければ等分
 function viaFrac(vs, ln, type) {
@@ -1246,10 +1264,9 @@ function openDelay(idx, i) {
   const segs = [];
   for (let j = j0; j <= j1; j++) {
     const ln = lines[A + j], t = chain[j].trip;
-    const vs = viaStops(stations[A + j], stations[A + j + 1], ln, t.t) || [stations[A + j], stations[A + j + 1]];
-    // 時刻表どおりの各駅の時刻（所要を駅間の所要時間で割り振る）
-    const f = viaFrac(vs, ln, t.t);
-    segs.push({ prefix: ln.prefix, name: ln.name, color: ln.color, no: trainNo(t), plan: vs.map((s, k) => ({ n: s, sec: Math.round((t.sd + (t.sa - t.sd) * f[k]) / 60) * 60 })) });
+    // 時刻表どおりの各駅の時刻
+    const plan = viaPlan(stations[A + j], stations[A + j + 1], ln, t, true) || [{ n: stations[A + j], sec: t.sd }, { n: stations[A + j + 1], sec: t.sa }];
+    segs.push({ prefix: ln.prefix, name: ln.name, color: ln.color, no: trainNo(t), plan });
   }
   dlEdit = { segs, base, from: i - j0, min: delayMin(segs[0].prefix) }; // from：カードでどの路線のストップウォッチから開いたか（見出しに出す）
   $("#dlg-delay").showModal();
