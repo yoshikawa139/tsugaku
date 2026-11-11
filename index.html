@@ -99,7 +99,8 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
    ・路線記号の丸の中心：乗車時間「〇分 ∨〇駅」・路線名・列車IDの行・同着は、この点からの距離で置く。
    丸どうしの間は、上の駅の丸 → 路線記号の丸が --L、路線記号の丸 → 下の駅の丸が --S。始点駅からの区間だけ上も --S。
    駅の箱は丸の中心より上の --sa ぶんの高さで、文字は下へはみ出して描く。区間の箱は上の駅の丸の中心から次の駅の箱の上端まで */
-.tl { --L: 55px; --S: 40px; --sa: 12px; --dots: 8px; } /* --dots：直通駅の「…」の中心は、基準の点の 8px 下 */
+.tl { --L: 55px; --S: 40px; --sa: 12px; --dots: 8px; }
+#results.wide .tl { --L: 60px; --S: 45px; } /* 検索設定「区間の幅を広げる」 */ /* --dots：直通駅の「…」の中心は、基準の点の 8px 下 */
 .stop { display: grid; grid-template-columns: 52px 18px 1fr; column-gap: 8px; grid-template-rows: var(--sa); }
 .stop:last-child { grid-template-rows: auto; } /* 終点だけは中身の高さまで（カードの下の余白のため） */
 /* 駅の文字は、箱の上端（丸の中心の 12px 上）から並べる */
@@ -431,7 +432,7 @@ table.status td:nth-child(3), table.status td:nth-child(4) { font-family: var(--
         <form method="dialog" class="dlg-in">
           <h2>検索設定</h2>
           <label class="toggle"><input id="q-relax" type="checkbox"> 余裕をもつ（通常の乗換時間で検索）</label>
-          <p class="hint">外すと「急ぎ」の乗換時間で検索します。</p>
+          <label class="toggle"><input id="q-wide" type="checkbox"> 区間の幅を広げる</label>
           <label class="toggle"><input id="q-dark" type="checkbox"> ダークモード</label>
           <div class="dlg-act"><button class="btn primary" value="ok">閉じる</button></div>
         </form>
@@ -963,6 +964,7 @@ function renderSearch() {
   $("#q-day").value = S.ui.day;
   $("#q-relax").checked = !!S.ui.relax;
   $("#q-dark").checked = isDark();
+  $("#q-wide").checked = !!S.ui.wide;
   const live = !S.ui.qTime;
   const ns = searchNow();
   const qSec = live ? ns.sec : toSec(S.ui.qTime);
@@ -1338,6 +1340,7 @@ const sysDark = matchMedia("(prefers-color-scheme: dark)");
 const isDark = () => S.ui.theme ? S.ui.theme === "dark" : sysDark.matches;
 function applyTheme() { if (S.ui.theme) document.documentElement.dataset.theme = S.ui.theme; else delete document.documentElement.dataset.theme; const c = $("#q-dark"); if (c) c.checked = isDark(); }
 sysDark.addEventListener("change", applyTheme);
+function applyWide() { $("#results").classList.toggle("wide", !!S.ui.wide); }
 
 /* ===== 操作 ===== */
 document.querySelectorAll("[data-dir]").forEach(b => b.onclick = () => { S.ui.dir = b.dataset.dir; save(); render(); });
@@ -1379,6 +1382,7 @@ function hideTip() {
 document.addEventListener("click", hideTip);
 addEventListener("resize", hideTip);
 $("#q-relax").onchange = e => { S.ui.relax = e.target.checked; save(); render(); };
+$("#q-wide").onchange = e => { S.ui.wide = e.target.checked; save(); applyWide(); };
 $("#q-dark").onchange = e => { S.ui.theme = e.target.checked ? "dark" : "light"; save(); applyTheme(); };
 
 $("#tt-legs").onclick = e => { const b = e.target.closest("[data-leg]"); if (!b) return; S.ui.ttLeg = +b.dataset.leg; save(); renderTimetable(); };
@@ -1525,7 +1529,7 @@ function setRb() {
 }
 addEventListener("resize", () => setRb());
 setHdr(); addEventListener("resize", setHdr);
-applyTheme();
+applyTheme(); applyWide();
 fromHash();
 setInterval(() => {
   if (S.ui.view !== "search" || S.ui.qTime) return;
