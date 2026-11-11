@@ -333,25 +333,44 @@ circle.rb-icon { stroke-width: 1.4; }
 #dlg-delay .dlg-in { gap: 12px; }
 .dl-step { display: flex; align-items: center; justify-content: center; gap: 14px; }
 .dl-step button { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 5px 0 0; border-radius: 22px; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer; }
-.dl-step .v { min-width: 96px; text-align: center; font: 700 30px/1 var(--font-num); color: var(--warn); }
-.dl-step .v.zero { color: var(--muted); }
+.dl-step .v { min-width: 96px; text-align: center; font: 700 30px/1 var(--font-num); color: var(--ink); }
+.dl-step .v.zero { color: var(--faint); }
 .dl-step .v small { font: 600 15px var(--font-body); margin-left: 2px; }
-.dl-reset { align-self: center; border: 0; background: none; font: 700 13px var(--font-body); color: var(--warn); margin-top: -4px; cursor: pointer; }
+.dl-reset { align-self: center; border: 0; background: none; font: 700 13px var(--font-body); color: var(--ink); margin-top: -4px; cursor: pointer; }
+.dl-reset.zero { color: var(--faint); } /* 0分のときは「0分」と同じ薄い灰色 */
 .dl-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule); border-radius: 10px; max-height: 236px; overflow-y: auto; }
-.dl-list li { display: grid; grid-template-columns: 52px 18px 1fr auto; column-gap: 8px; align-items: center; height: 39px; padding-right: 10px; border-bottom: 1px solid var(--rule); font-size: 14px; cursor: pointer; }
-.dl-list li:last-child { border-bottom: 0; }
+.dl-list li { display: grid; grid-template-columns: 52px 18px 1fr auto; column-gap: 8px; align-items: center; height: 39px; padding-right: 10px; font-size: 14px; position: relative; z-index: 1; }
 .dl-list li .t { text-align: right; font: 500 13px var(--font-num); color: var(--muted); }
 .dl-list li .b { align-self: stretch; position: relative; background: linear-gradient(var(--c), var(--c)) center / 4px 100% no-repeat; }
-.dl-list li:first-child .b { background-size: 4px 50%; background-position: center bottom; }
-.dl-list li:last-child .b { background-size: 4px 50%; background-position: center top; }
+.dl-list li:first-of-type .b { background-size: 4px 50%; background-position: center bottom; }
+.dl-list li:last-of-type .b { background-size: 4px 50%; background-position: center top; }
 .dl-list li .b::after { content: ""; box-sizing: border-box; position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--surface); border: 2px solid var(--c); }
-.dl-list li.on { background: color-mix(in srgb, var(--warn) 14%, transparent); font-weight: 700; }
-.dl-list li.on .t { color: var(--ink); }
-.dl-list li .tag { display: inline-flex; align-items: center; height: 22px; padding: 1.5px 9px 0; font-size: 12px; font-weight: 700; color: var(--accent-ink); background: var(--warn); border-radius: 999px; }
+.dl-list { position: relative; }
+/* 遅延入力の路線図：駅の間の長さを所要時間に比例（1分＝ --pm）、1分ごとの目盛り */
+.dl-list.prop { --pm: 20px; }
+.dl-list.prop li { position: absolute; left: 0; right: 0; height: 20px; transform: translateY(-50%); }
+.dl-list.prop li .b { background: none; }
+.dl-list.prop .rail { position: absolute; left: 67px; width: 4px; background: var(--c); }
+.dl-list.prop .tk { position: absolute; left: 64px; width: 10px; height: 1.5px; margin-top: -0.75px; background: var(--c); }
+.dl-list.prop .sp { display: block; }
+.dl-list.prop .band { height: calc(2 * var(--pm)); } /* 帯はちょうど2目盛り分 */
+.dl-list.prop li .t { position: relative; }
+.dl-list.prop li .t .dt { position: absolute; right: 6px; top: 15px; font: 700 12px var(--font-num); color: var(--warn); } /* 遅れたあとの時刻：元の時刻の左下 */
+.dl-list.prop li .t s { text-decoration-thickness: 1px; }
+.dl-list.prop li .t .dt.up { top: -15px; } /* 直通駅の到着：遅れたあとの時刻は元の時刻の左上 */
+.dl-list.prop .band.top { border-top: 0; } .dl-list.prop .band.bot { border-bottom: 0; } /* 帯が枠に接するときは、枠の線を帯の線とする（二重にしない） */
+.dl-list.prop .rail.r0 { border-radius: 2px 2px 0 0; } .dl-list.prop .rail.r1 { border-radius: 0 0 2px 2px; } .dl-list.prop .rail.r0.r1 { border-radius: 2px; }
+.dl-list.prop li.x .b::after { display: none; } /* 直通駅は丸を置かない */
+.dl-list.prop li .t small { font: 500 11px var(--font-body); }
+.dl-list.prop .dw { position: absolute; left: 67px; width: 4px; height: 4px; margin-top: -2px; border-radius: 50%; background: var(--ink); box-shadow: 0 -6px var(--ink), 0 6px var(--ink); } /* 直通駅：縦の「…」。カードの 4/6 倍（点4px・点の間6px） */
+.dl-list .tag.st { color: var(--surface); } /* 直通駅に停車中：黒（ダークでは白）の地に、地の色の字 */
+.dl-list .band { position: absolute; left: 0; right: 0; box-sizing: border-box; height: 39px; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); transform: translateY(-50%); background: color-mix(in srgb, var(--c) 14%, transparent); } /* 「現在」の位置の薄い帯（1行分） */
+.dl-list .tag { position: absolute; z-index: 2; right: 10px; transform: translateY(-50%); display: inline-flex; align-items: center; height: 22px; padding: 1.5px 9px 0; font-size: 12px; font-weight: 700; color: #FFFFFF; background: var(--c); border-radius: 999px; } /* 路線の色 */
 .dl-note { font-size: 12px; color: var(--muted); }
 .dl-act { display: flex; justify-content: flex-end; gap: 10px; }
 .dl-act button { display: inline-flex; align-items: center; justify-content: center; height: 38px; padding: 1.75px 18px 0; border-radius: 19px; font: 600 14px var(--font-body); border: 1px solid var(--rule); background: var(--surface); color: var(--ink); cursor: pointer; }
-.dl-act .ok { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.dl-act .ok { background: var(--ink); border-color: var(--ink); color: var(--surface); } /* 黒（ダークでは白） */
+.dl-act .ok:disabled { background: var(--rule); border-color: var(--rule); color: var(--faint); cursor: default; }
 .alt-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .alt-list li { padding: 10px 0; border-bottom: 1px solid var(--rule); display: flex; align-items: flex-start; gap: 12px; }
 .alt-list .dep { font: 600 22px/1.15 var(--font-num); min-width: 66px; }
@@ -1186,42 +1205,90 @@ const delayMin = prefix => delayRec(prefix)?.min || 0;
 // 遅れている列車の時刻は橙で出す
 const LT = (trip, sec) => trip.dl ? `<span class="lt">${hm(sec)}</span>` : hm(sec);
 let dlEdit = null;
+// 乗り入れ（降車不要で直通する）区間は、前後の路線をまとめて1つの入力画面にする
 function openDelay(idx, i) {
-  const { list, A, dir, base } = lastRes, { stations, lines } = route(dir), ln = lines[A + i], t = list[idx][i].trip;
-  const vs = viaStops(stations[A + i], stations[A + i + 1], ln, t.t) || [stations[A + i], stations[A + i + 1]], segs = vs.length - 1;
-  // 時刻表どおりの各駅の時刻（所要を等分）
-  const plan = vs.map((n, k) => ({ n, sec: Math.round((t.sd + (t.sa - t.sd) * k / segs) / 60) * 60 }));
-  dlEdit = { prefix: ln.prefix, name: ln.name, color: ln.color, plan, base, min: delayMin(ln.prefix), sel: -1 };
-  drawDelay();
+  const { list, A, dir, base } = lastRes, { stations, lines } = route(dir), chain = list[idx];
+  let j0 = i, j1 = i;
+  while (j0 > 0 && chain[j0].through) j0--;
+  while (j1 + 1 < chain.length && chain[j1 + 1].through) j1++;
+  const segs = [];
+  for (let j = j0; j <= j1; j++) {
+    const ln = lines[A + j], t = chain[j].trip;
+    const vs = viaStops(stations[A + j], stations[A + j + 1], ln, t.t) || [stations[A + j], stations[A + j + 1]], n = vs.length - 1;
+    // 時刻表どおりの各駅の時刻（所要を等分）
+    segs.push({ prefix: ln.prefix, name: ln.name, color: ln.color, plan: vs.map((s, k) => ({ n: s, sec: Math.round((t.sd + (t.sa - t.sd) * k / n) / 60) * 60 })) });
+  }
+  dlEdit = { segs, base, from: i - j0, min: delayMin(segs[0].prefix) }; // from：カードでどの路線のストップウォッチから開いたか（見出しに出す）
   $("#dlg-delay").showModal();
+  drawDelay();
   document.activeElement?.blur();
 }
-function drawDelay() {
-  const e = dlEdit, rec = delayRec(e.prefix), now = (Date.now() - e.base) / 1000;
-  const rows = e.plan.map((p, k) => `<li data-k="${k}" class="${k === e.sel ? "on" : ""}"><span class="t">${hm(p.sec)}</span><span class="b"></span><span>${p.n}</span>${k === e.sel ? `<span class="tag">${hm(now)} 現在</span>` : "<span></span>"}</li>`).join("");
-  $("#dl-body").innerHTML = `<h2 class="alt-h" style="--c:${e.color}"><span class="k">遅延情報</span><span class="st"><b class="lnf">${e.name}</b></span><span class="ln">${rec ? `${PEN_ICON}最終更新 ${hm((rec.at - e.base) / 1000)}` : "未入力"}</span></h2>
-    <div class="dl-step"><button type="button" data-step="-1" aria-label="1分減らす">−</button><span class="v${e.min ? "" : " zero"}">${e.min}<small>分</small></span><button type="button" data-step="1" aria-label="1分増やす">＋</button></div>
-    <button type="button" class="dl-reset">リセット</button>
-    <ul class="dl-list" style="--c:${e.color}">${rows}</ul>
-    <div class="dl-note">遅延情報は更新後3時間でリセットされます。</div>
-    <div class="dl-act"><button type="button" value="cancel" class="no">やめる</button><button type="button" class="ok">更新</button></div>`;
+const DL_PM = 20, DL_PAD = 40, DL_K = 4 / 6; // 1分＝20px。上下の余白は、帯（2目盛り分）が始点の1分前・終点の1分後まで動ける分。DL_K：直通駅の「…」と前後の線は、カード（線の太さ6px・点6px・点の間9px・中心から線の先端まで16px）を線の太さ4pxに合わせて 4/6 倍したもの
+// 時刻（遅れ d 秒を足した時刻）→ 路線図の上からの位置。直通駅は駅名の行（「…」の中心）が着・発の両方の時刻にあたり、
+// その前後の目盛りは着の1分前・発の1分後。着の分から発の分まで（両端を含む）帯は駅名の行に止まる。帯はどこでも1分に1目盛りずつ進む
+function dlY(e, sec, d = 0) {
+  let y = DL_PAD;
+  for (let k = 0; k < e.segs.length; k++) {
+    const g = e.segs[k], s0 = g.plan[0].sec + d, s1 = g.plan.at(-1).sec + d;
+    if (k > 0 && sec <= s0) return { y, st: true }; // 直通駅に停車中
+    if (sec < s1 || k === e.segs.length - 1) return { y: y + (sec - s0) / 60 * DL_PM };
+    y += (s1 - s0) / 60 * DL_PM;
+  }
 }
+function drawDelay() {
+  const e = dlEdit, segs = e.segs, rec = delayRec(segs[0].prefix);
+  // 遅れがあるときは元の時刻を消し、遅れたあとの時刻（「着」「発」は付けない）を左下に書く。up：左上（直通駅の到着）
+  const tm = (sec, ja, up) => e.min ? `<s>${hm(sec)}</s>${ja}<b class="dt${up ? " up" : ""}">${hm(sec + e.min * 60)}</b>` : hm(sec) + ja;
+  const row = (y, c, t, n, cls = "") => `<li class="${cls}" style="top:${y}px;--c:${c}"><span class="t">${t}</span><span class="b"></span><span>${n}</span></li>`;
+  let rows = "", yEnd = DL_PAD;
+  segs.forEach((g, k) => {
+    const s0 = g.plan[0].sec, s1 = g.plan.at(-1).sec, first = k === 0, last = k === segs.length - 1, y0 = yEnd;
+    const y = sec => y0 + (sec - s0) / 60 * DL_PM;
+    // 線と目盛り：路線の色で。直通駅の側は、線の先端が「…」の中心から 16px×4/6（カードの「…」の比率）。直通駅の中心には目盛りを置かない
+    const a0 = first ? y0 : y0 + 16 * DL_K, a1 = last ? y(s1) : y(s1) - 16 * DL_K;
+    rows += `<span class="rail${first ? "" : " r0"}${last ? "" : " r1"}" style="top:${a0}px;height:${a1 - a0}px;--c:${g.color}"></span>`;
+    for (let s = first ? s0 : s0 + 60; s <= (last ? s1 : s1 - 60); s += 60) rows += `<i class="tk" style="top:${y(s)}px;--c:${g.color}"></i>`;
+    g.plan.forEach((p, m) => { if ((m > 0 || first) && (m < g.plan.length - 1 || last)) rows += row(y(p.sec), g.color, tm(p.sec, ""), p.n); });
+    yEnd = y(s1);
+    // 直通駅：「…」を中心に、駅名の行に着・発の時刻を上下に並べる
+    if (!last) {
+      const ym = yEnd, a = s1, dp = segs[k + 1].plan[0].sec;
+      rows += `<i class="dw" style="top:${ym}px"></i>` + row(ym - 7, g.color, tm(a, `<small>着</small>`, true), "", "x") + row(ym + 7, g.color, tm(dp, `<small>発</small>`), "", "x") + row(ym, g.color, "", g.plan.at(-1).n, "x");
+    }
+  });
+  rows = `<span class="sp" style="height:${yEnd + DL_PAD}px"></span>` + rows;
+  const h = segs[e.from], saved = delayMin(segs[0].prefix); // 見出しは開いた路線だけ。その下の情報は乗り入れ先と共有
+  $("#dl-body").innerHTML = `<h2 class="alt-h" style="--c:${h.color}"><span class="k">遅延情報</span><span class="st"><b class="lnf">${h.name}</b></span><span class="ln">${rec ? `${PEN_ICON}最終更新 ${hm((rec.at - e.base) / 1000)}` : "未入力"}</span></h2>
+    <div class="dl-step"><button type="button" data-step="-1" aria-label="1分減らす">−</button><span class="v${e.min ? "" : " zero"}">${e.min}<small>分</small></span><button type="button" data-step="1" aria-label="1分増やす">＋</button></div>
+    <button type="button" class="dl-reset${e.min ? "" : " zero"}">リセット</button>
+    <ul class="dl-list prop"><span class="band" hidden></span>${rows}<span class="tag" hidden></span></ul>
+    <div class="dl-note">遅延情報は更新後3時間でリセットされます。</div>
+    <div class="dl-act"><button type="button" value="cancel" class="no">やめる</button><button type="button" class="ok"${e.min === saved ? " disabled" : ""}>更新</button></div>`; // 更新する内容がなければ押せない（灰色）
+  placeTag(true);
+}
+// 「〇:〇〇 現在」の印（ラベルと薄い帯）：いまの遅れ（0分も含む）で電車がいるはずの位置。1分ごとに動く。
+// 始点の1分前より前は始点の1分前の位置、終点の1分後より後は終点の1分後の位置に出す。色はその位置の路線の色で、直通駅に停車中は黒（ダークでは白）。路線図は見るためだけのもの（押せない）
+function placeTag(scroll) {
+  const e = dlEdit, ul = $("#dl-body .dl-list"); if (!e || !ul) return;
+  const tag = ul.querySelector(".tag"), band = ul.querySelector(".band"), segs = e.segs, d = e.min * 60;
+  const T0 = segs[0].plan[0].sec + d, T1 = segs.at(-1).plan.at(-1).sec + d, now = Math.floor((Date.now() - e.base) / 60000) * 60;
+  const tc = Math.min(Math.max(now, T0 - 60), T1 + 60), { y, st } = dlY(e, tc, d);
+  const g = segs.find((g, k) => k === segs.length - 1 || tc < g.plan.at(-1).sec + d);
+  const c = st ? "var(--ink)" : g.color;
+  tag.textContent = `${hm(now)} 現在`; tag.style.top = band.style.top = `${y}px`; tag.style.setProperty("--c", c); band.style.setProperty("--c", c); tag.classList.toggle("st", !!st); tag.hidden = band.hidden = false;
+  band.classList.toggle("top", y - DL_PM <= 0); band.classList.toggle("bot", y + DL_PM >= ul.scrollHeight);
+  if (scroll) ul.scrollTop = Math.max(0, y - ul.clientHeight / 2);
+}
+setInterval(() => { if ($("#dlg-delay").open) placeTag(false); }, 5000);
 $("#dl-body").addEventListener("click", ev => {
   const e = dlEdit; if (!e) return;
   const st = ev.target.closest("[data-step]");
-  if (st) { e.min = Math.max(0, Math.min(180, e.min + +st.dataset.step)); e.sel = -1; drawDelay(); return; }
-  if (ev.target.closest(".dl-reset")) { e.min = 0; e.sel = -1; drawDelay(); return; }
-  const li = ev.target.closest(".dl-list li");
-  if (li) {
-    // 電車がいま選んだ駅にいる → 時刻表のその駅の時刻との差が遅れ
-    const k = +li.dataset.k, now = (Date.now() - e.base) / 1000;
-    e.sel = k; e.min = Math.max(0, Math.round((now - e.plan[k].sec) / 60));
-    const sc = $("#dl-body .dl-list").scrollTop; drawDelay(); $("#dl-body .dl-list").scrollTop = sc; return;
-  }
+  if (st) { e.min = Math.max(0, Math.min(180, e.min + +st.dataset.step)); drawDelay(); return; }
+  if (ev.target.closest(".dl-reset")) { e.min = 0; drawDelay(); return; }
   if (ev.target.closest(".no")) { $("#dlg-delay").close(); return; }
   if (ev.target.closest(".ok")) {
     S.delay = S.delay || {};
-    if (e.min > 0) S.delay[e.prefix] = { min: e.min, at: Date.now() }; else delete S.delay[e.prefix];
+    for (const g of e.segs) if (e.min > 0) S.delay[g.prefix] = { min: e.min, at: Date.now() }; else delete S.delay[g.prefix];
     save(); $("#dlg-delay").close(); runSearch();
   }
 });
