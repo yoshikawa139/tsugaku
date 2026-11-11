@@ -521,9 +521,11 @@ const SPARE_COLORS = ["#D6457F", "#E2571E", "#0096C7", "#8463CC", "#2A4FA8", "#0
 function lineColor(l, i) { return /^#[0-9a-fA-F]{3,8}$/.test(l.color || "") ? l.color : SPARE_COLORS[i % SPARE_COLORS.length]; }
 // 番線（とりあえず駅ごと・方向ごとに1つ）：route.plat[dir][駅] = [着, 発]
 // パックに番線がまだないとき（古いパックを取り込んだまま）は、通学路の駅の並びが同じなら下の値を使う
+/* @adhoc begin BUILTIN_PLAT — APK移行で削除 */
 const BUILTIN_PLAT = { stations: "三咲,北習志野,西船橋,九段下,渋谷,駒場東大前", plat: {
   out: { "三咲": [null, "1"], "北習志野": ["1", "4"], "西船橋": ["5・6", "5・6"], "九段下": ["2", "3"], "渋谷": ["1", "1・2"], "駒場東大前": ["1", null] },
   in: { "駒場東大前": [null, "2"], "渋谷": ["1・2", "2"], "九段下": ["4", "1"], "西船橋": ["7・8", "7・8"], "北習志野": ["3", "2"], "三咲": ["2", null] } } };
+/* @adhoc end */
 const platOf = (dir, st) => { const r = baseRoute(), pl = r.plat || (r.stations.join() === BUILTIN_PLAT.stations ? BUILTIN_PLAT.plat : null); return pl?.[dir]?.[st] || []; };
 function baseRoute() { return (typeof S !== "undefined" && S && S.route) || DEFAULT_ROUTE; }
 function route(dir) {
@@ -1123,6 +1125,7 @@ $("#results").addEventListener("click", e => {
 });
 
 /* ===== 途中駅（駅間データ） ===== */
+/* @adhoc begin DEFAULT_SEC — APK移行で削除 */
 // 路線ごとの駅の並び（行きの向き）と、種別ごとに通過する駅。パックの "sec" があればそちらを使う
 const DEFAULT_SEC = {
   ks: { st: ["三咲", "滝不動", "高根公団", "高根木戸", "北習志野"] },
@@ -1132,6 +1135,7 @@ const DEFAULT_SEC = {
   z: { st: ["九段下", "半蔵門", "永田町", "青山一丁目", "表参道", "渋谷"] },
   in: { st: ["渋谷", "神泉", "駒場東大前"] },
 };
+/* @adhoc end */
 const VIA_ICON = `<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg>`;
 const viaOpen = new Set();
 // 区間の乗る駅から降りる駅までの、その種別が止まる駅（両端を含む）。データが無ければ null
@@ -1153,10 +1157,12 @@ const TID_D = 22; // 列車IDの丸の直径（縁 3px 込み）
 // 路線記号の印。prefix は公式の路線記号の小文字（列車IDは「tr10」の形）で、印には大文字で出す。
 // 英字は数字より横に広いので、幅が TID_W を超える記号は fitSym() で横を詰める（縦長に見える）
 const symOf = ln => (ln.prefix || "").toUpperCase();
+/* @adhoc begin PREFIX_NEW — APK移行で削除 */
 // 以前の独自の記号 → 公式の記号（保存データと古いパックを読み替える）
 const PREFIX_NEW = { ty: "tr", tz: "t", hz: "z", ko: "in" };
 const newPrefix = p => PREFIX_NEW[p] || p;
 const remapKeys = o => o && Object.fromEntries(Object.entries(o).map(([k, v]) => [newPrefix(k), v]));
+/* @adhoc end */
 const TID_W = 11;
 const symBadge = ln => { const k = symOf(ln); return k ? `<svg class="tid" viewBox="0 0 ${TID_D} ${TID_D}" style="width:${TID_D}px;height:${TID_D}px" role="img" aria-label="路線記号 ${esc(k)}"><circle cx="${TID_D / 2}" cy="${TID_D / 2}" r="${TID_D / 2 - 1.5}"/><text x="${TID_D / 2}" y="${TID_D / 2}" dy=".36em">${esc(k)}</text></svg>` : ""; };
 function fitSym() { document.querySelectorAll("#results .tid text:not([textLength])").forEach(t => { const w = t.getComputedTextLength(); if (w > TID_W) { t.setAttribute("textLength", TID_W); t.setAttribute("lengthAdjust", "spacingAndGlyphs"); } }); }
@@ -1404,10 +1410,12 @@ function ownXf(key) {
 }
 // 以前の形式（実測フラグ・計測記録・徒歩・マージン）を整理する
 function migrate() {
+  /* @adhoc begin migrate-prefix — APK移行で削除 */
   // 路線の内部の名前を公式の記号に（ty→tr など）。列車IDは normalizeTrains() が新しい名前で振り直す
   if (S.route) for (const l of S.route.lines) { l.prefix = newPrefix(l.prefix); delete l.sym; }
   if (S.sec) S.sec = remapKeys(S.sec);
   if (S.delay) S.delay = remapKeys(S.delay);
+  /* @adhoc end */
   for (const r of Object.values(S.xf)) {
     if ("measured" in r) r.prov = !r.measured;
     delete r.measured; delete r.mirrorOf; delete r.link; delete r.samples;
