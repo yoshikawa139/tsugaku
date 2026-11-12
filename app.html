@@ -20,6 +20,7 @@
   --rb-bg: #E6EBF2; --rb-ink: #2B3445; --rb-icon: #3B4352; --rb-dot: #6B7484; --rb-lab-ink: #FFFFFF;
   --warn: #B45309;
   --warn-bg: #FEF3C7;
+  --late: #D9480F; /* 運行情報の画面の、遅れたあとの時刻 */
   --ok: #047857;
   --bad: #B91C1C;
   --font-body: "IBM Plex Sans JP", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
@@ -27,14 +28,14 @@
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #0E1217; --surface: #171C23; --ink: #E7ECF2; --muted: #96A1AF; --faint: #66707D; --rule: #2A323C;
-  --accent: #7AA2FF; --accent-ink: #0E1217; --warn: #FBBF24; --warn-bg: #3A2C0B; --ok: #34D399; --bad: #F87171;
+  --accent: #7AA2FF; --accent-ink: #0E1217; --warn: #FBBF24; --warn-bg: #3A2C0B; --late: #FBBF24; --ok: #34D399; --bad: #F87171;
   --sel: #FFC000; --sel-ink: #212B3D;
   --none: #69727F;
   --rb-bg: #212B3D; --rb-ink: #E8E8E8; --rb-icon: #D0D1D4; --rb-dot: #D1D1D1; --rb-lab-ink: #212B3D;
   color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #0E1217; --surface: #171C23; --ink: #E7ECF2; --muted: #96A1AF; --faint: #66707D; --rule: #2A323C;
-  --accent: #7AA2FF; --accent-ink: #0E1217; --warn: #FBBF24; --warn-bg: #3A2C0B; --ok: #34D399; --bad: #F87171;
+  --accent: #7AA2FF; --accent-ink: #0E1217; --warn: #FBBF24; --warn-bg: #3A2C0B; --late: #FBBF24; --ok: #34D399; --bad: #F87171;
   --sel: #FFC000; --sel-ink: #212B3D;
   --none: #69727F;
   --rb-bg: #212B3D; --rb-ink: #E8E8E8; --rb-icon: #D0D1D4; --rb-dot: #D1D1D1; --rb-lab-ink: #212B3D;
@@ -148,11 +149,14 @@ textarea { width: 100%; min-height: 160px; font-family: var(--font-num); font-si
 .via .t { text-align: right; font-size: 12.5px; color: var(--muted); padding-top: 3px; }
 .via .bar { display: flex; justify-content: center; position: relative; }
 .via .bar i { width: 6px; background: var(--c); margin: -1px 0; }
-.via .bar::after { content: ""; box-sizing: border-box; position: absolute; left: 50%; top: 9px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: var(--surface); border: 2px solid var(--c); }
+.via .bar::after { content: ""; box-sizing: border-box; position: absolute; left: 50%; top: 9px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: #FFFFFF; border: 2px solid var(--c); } /* 駅の丸の中はダークでも白 */
 .via .n { font-size: 13px; color: var(--muted); padding-top: 3px; }
 .ride .body .where { display: flex; align-items: center; gap: calc(4.5px - 1.915px / var(--z)); /* ストップウォッチの左端から「定刻通り」の書き始めまで画面上 15px */ font-size: 12.5px; line-height: 16px; color: var(--muted); }
 .ride .body .pf svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; flex: none; transform: translate(0.1px, -0.335px); } /* 電車マークの位置の微調整（行ごと 0.3px 上げた分を戻して、マークの位置は据え置き） */
 .ride .body .pf { gap: 2.5px; } /* 「KS10」のような列車番号。マークとの間を 2px 詰める */
+.ride .body .pf.alt { color: var(--accent); } /* 同着があるとき：同着のボタンと同じ青 */
+.alt-t { position: relative; display: inline-flex; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
+.alt-t::before { content: ""; position: absolute; inset: -10px -8px; } /* 押しやすいように当たりを広げる */
 .ride .body .row2 { position: relative; display: flex; align-items: center; gap: 8.23px; } /* 「号」からストップウォッチまでの間を、桁数によらず 2桁のときと同じに */
 /* 列車IDの印：路線の線の中心、路線名の行と次の行の境目の高さに置く（本文の左端から 17px 左が線の中心）。
    中はダークでも白、文字は黒。直径 18px・縁 3px。番号は下2桁 */
@@ -313,7 +317,7 @@ circle.rb-icon { stroke-width: 1.4; }
 .dlg-in { display: flex; flex-direction: column; gap: 14px; padding: 18px; }
 .dlg-in h2 { margin: 0; font-size: 16px; }
 .dlg-act { display: flex; justify-content: flex-end; }
-/* 同着：カードの駅のボタンと、押すと開く一覧 */
+/* 同着：カードの駅のボタンと、押すと開く一覧（路線情報） */
 .stop .nrow { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 /* 同着のボタンは路線名の高さの右端に、アイコンの下に「〇:〇〇発／も同着」の2行で置く。行の高さは変えない */
 .stop, .ride .body { position: relative; }
@@ -327,9 +331,11 @@ circle.rb-icon { stroke-width: 1.4; }
 .alt-h .st .lnf { padding: 5.5px 2px 1px 3px; line-height: 24px; font-weight: 700; letter-spacing: .06em; }
 .alt-h .ln { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--muted); margin-top: 2px; }
 .alt-h .ln i { width: 10px; height: 10px; border-radius: 2px; background: var(--c); transform: translateY(-1px); } /* 文字と上下の中心をそろえる */
-.alt-h .ln:has(.pen) { gap: 4px; }
-.alt-h .ln .pen { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
-/* 遅延情報の入力 */
+/* 見出しの下：路線情報は乗る区間「〇〇→〇〇」、運行情報は列車IDと、その行の右端に「（鉛筆）最終更新」（未入力なら何も出さない） */
+.alt-h .tn { display: flex; justify-content: space-between; margin-top: 0; }
+.alt-h .tn .up { display: inline-flex; align-items: center; gap: 4px; }
+.alt-h .ln .pen { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; transform: translateY(-2px); } /* 鉛筆は 2px 上 */
+/* 運行情報（遅延）の入力 */
 #dlg-delay .dlg-in { gap: 12px; }
 .dl-step { display: flex; align-items: center; justify-content: center; gap: 14px; }
 .dl-step button { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 5px 0 0; border-radius: 22px; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer; }
@@ -344,7 +350,7 @@ circle.rb-icon { stroke-width: 1.4; }
 .dl-list li .b { align-self: stretch; position: relative; background: linear-gradient(var(--c), var(--c)) center / 4px 100% no-repeat; }
 .dl-list li:first-of-type .b { background-size: 4px 50%; background-position: center bottom; }
 .dl-list li:last-of-type .b { background-size: 4px 50%; background-position: center top; }
-.dl-list li .b::after { content: ""; box-sizing: border-box; position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--surface); border: 2px solid var(--c); }
+.dl-list li .b::after { content: ""; box-sizing: border-box; position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: #FFFFFF; border: 2px solid var(--c); } /* 駅の丸の中はダークでも白 */
 .dl-list { position: relative; }
 /* 遅延入力の路線図：駅の間の長さを所要時間に比例（1分＝ --pm）、1分ごとの目盛り */
 .dl-list.prop { --pm: 20px; }
@@ -355,7 +361,7 @@ circle.rb-icon { stroke-width: 1.4; }
 .dl-list.prop .sp { display: block; }
 .dl-list.prop .band { height: calc(2 * var(--pm)); } /* 帯はちょうど2目盛り分 */
 .dl-list.prop li .t { position: relative; }
-.dl-list.prop li .t .dt { position: absolute; right: 6px; top: 15px; font: 700 12px var(--font-num); color: var(--warn); } /* 遅れたあとの時刻：元の時刻の左下 */
+.dl-list.prop li .t .dt { position: absolute; right: 6px; top: 15px; font: 700 12px var(--font-num); color: var(--late); } /* 遅れたあとの時刻：元の時刻の左下 */
 .dl-list.prop li .t s { text-decoration-thickness: 1px; }
 .dl-list.prop li .t .dt.up { top: -15px; } /* 直通駅の到着：遅れたあとの時刻は元の時刻の左上 */
 .dl-list.prop .band.top { border-top: 0; } .dl-list.prop .band.bot { border-bottom: 0; } /* 帯が枠に接するときは、枠の線を帯の線とする（二重にしない） */
@@ -1051,12 +1057,13 @@ function runSearch() {
       const viaBtn = segs > 1 ? `<button type="button" class="via-b" data-via="${esc(vk)}" aria-expanded="${open}">${VIA_ICON}${segs}駅</button>` : segs === 1 ? `<span class="via-b one">1駅</span>` : "";
       // 番線：降車不要で通り抜ける側は出さない
       const g = lastRes.alts[idx][i];
-      const no = (/([a-z]+\d+)$/.exec(t.id || "") || [])[1]; // 列車ID（例：tr10。路線記号の小文字＋番号。番線は出さない）
-      const pf = no ? `<span class="where pf">${TRAIN_ICON}${esc(no)}</span>` : "";
+      const no = trainNo(t); // 列車ID（例：tr10。路線記号の小文字＋番号。番線は出さない）
+      // 同着があるときは電車マークと列車IDを青にし、マークを押すと路線情報（同着の一覧）を開く
+      const pf = !no ? "" : g.length ? `<span class="where pf alt"><button type="button" class="alt-t" data-alt="${idx}:${i}" aria-label="${ln.name}の路線情報を開く">${TRAIN_ICON}</button>${esc(no)}</span>` : `<span class="where pf">${TRAIN_ICON}${esc(no)}</span>`;
       const alt = g.length ? `<button type="button" class="alt-b" data-alt="${idx}:${i}">${ALT_ICON}<span>${hm(g[0][i].trip.d)}発<br>も同着</span></button>` : "";
       tl += `<div class="ride" style="--c:${ln.color}"><div class="t rt"><span class="m num">${durJa(t.a - t.d).replace(/[^0-9]+/g, x => `<span class="ja">${x}</span>`)}</span>${viaBtn}</div><div class="bar"><i></i></div><div class="body">
         ${symBadge(ln)}<span class="line-chip" style="--c:${ln.color}">${ln.name}${t.t ? ` ${esc(t.t)}` : ""}${t.to ? ` ${esc(t.to)}行` : ""}</span>
-        <div class="row2">${pf}<span class="where${t.dl ? " late" : ""}"><button type="button" class="dly-b" data-dly="${idx}:${i}" aria-label="${ln.name}の遅延情報を入力">${SW_ICON}</button>${t.dl ? `${t.dl / 60}分遅れ` : "定刻通り"}</span></div>${alt}</div></div>`;
+        <div class="row2">${pf}<span class="where${t.dl ? " late" : ""}"><button type="button" class="dly-b" data-dly="${idx}:${i}" aria-label="${ln.name}の運行情報を入力">${SW_ICON}</button>${t.dl ? `${t.dl / 60}分遅れ` : "定刻通り"}</span></div>${alt}</div></div>`;
       for (let k = 1; k < segs; k++) tl += `<div class="via" data-of="${esc(vk)}" style="--c:${ln.color}"${open ? "" : " hidden"}><div class="t num">${LT(t, Math.round((t.d + (t.a - t.d) * vf[k]) / 60) * 60)}</div><div class="bar"><i></i></div><div class="n">${vs[k]}</div></div>`;
     });
     tl += `<div class="stop" style="--cin:${lines[B - 1].color}"><div class="t num">${LT(last, last.a)}</div><div class="dot"></div><div><div class="name">${stations[B]}</div></div></div>`;
@@ -1113,7 +1120,7 @@ function openAlt(idx, k) {
     }
     return `<li><div class="dep num">${hm(r.t.d)}</div><div class="rt"><span class="kind">${esc(r.t.t)}${r.t.to ? ` ${esc(r.t.to)}行` : ""}</span>${xfRow}</div></li>`;
   }).join("") + cardRow;
-  $("#alt-body").innerHTML = `<h2 class="alt-h" style="--c:${ln.color}"><span class="k">同着情報</span><span class="st">${stations[A + k]}</span><span class="ln"><b class="lnf">${ln.name}</b></span></h2>
+  $("#alt-body").innerHTML = `<h2 class="alt-h" style="--c:${ln.color}"><span class="k">路線情報</span><span class="st"><b class="lnf">${ln.name}</b></span><span class="ln">${stations[A + k]}→${stations[A + k + 1]}</span></h2>
     <ul class="alt-list">${items}</ul>`;
   $("#dlg-alt").showModal();
   document.activeElement?.blur(); // 開いた直後に閉じるボタンへ枠が出ないように
@@ -1148,7 +1155,7 @@ $("#results").addEventListener("click", e => {
   }
   const d = e.target.closest(".dly-b");
   if (d && lastRes) { const [idx, i] = d.dataset.dly.split(":").map(Number); openDelay(idx, i); return; }
-  const b = e.target.closest(".alt-b"); if (!b || !lastRes) return;
+  const b = e.target.closest(".alt-b, .alt-t"); if (!b || !lastRes) return;
   const [idx, k] = b.dataset.alt.split(":").map(Number);
   openAlt(idx, k);
 });
@@ -1201,6 +1208,8 @@ function viaFrac(vs, ln, type) {
 
 /* ===== 遅延情報（路線ごと・手入力。更新から3時間で消える） ===== */
 const DELAY_TTL = 3 * 3600 * 1000;
+// 列車ID（例：tr10。路線記号の小文字＋番号）
+const trainNo = t => (/([a-z]+\d+)$/.exec(t.id || "") || [])[1] || "";
 const TRAIN_ICON = `<svg viewBox="0 0 12 12" aria-hidden="true"><rect x="2.5" y="1" width="7" height="8" rx="1.6"/><path d="M2.5 5.5h7M4.5 7.3h0M7.5 7.3h0M4 9 3 11M8 9l1 2"/></svg>`;
 // 列車ID（例 tz23）の番号だけを、路線の上に丸い印で出す（路線の記号は出さない）
 const TID_D = 22; // 列車IDの丸の直径（縁 3px 込み）
@@ -1238,11 +1247,11 @@ function openDelay(idx, i) {
     const vs = viaStops(stations[A + j], stations[A + j + 1], ln, t.t) || [stations[A + j], stations[A + j + 1]];
     // 時刻表どおりの各駅の時刻（所要を駅間の所要時間で割り振る）
     const f = viaFrac(vs, ln, t.t);
-    segs.push({ prefix: ln.prefix, name: ln.name, color: ln.color, plan: vs.map((s, k) => ({ n: s, sec: Math.round((t.sd + (t.sa - t.sd) * f[k]) / 60) * 60 })) });
+    segs.push({ prefix: ln.prefix, name: ln.name, color: ln.color, no: trainNo(t), plan: vs.map((s, k) => ({ n: s, sec: Math.round((t.sd + (t.sa - t.sd) * f[k]) / 60) * 60 })) });
   }
   dlEdit = { segs, base, from: i - j0, min: delayMin(segs[0].prefix) }; // from：カードでどの路線のストップウォッチから開いたか（見出しに出す）
   $("#dlg-delay").showModal();
-  drawDelay();
+  drawDelay(true);
   document.activeElement?.blur();
 }
 const DL_PM = 20, DL_PAD = 40, DL_K = 4 / 6; // 1分＝20px。上下の余白は、帯（2目盛り分）が始点の1分前・終点の1分後まで動ける分。DL_K：直通駅の「…」と前後の線は、カード（線の太さ6px・点6px・点の間9px・中心から線の先端まで16px）を線の太さ4pxに合わせて 4/6 倍したもの
@@ -1257,7 +1266,8 @@ function dlY(e, sec, d = 0) {
     y += (s1 - s0) / 60 * DL_PM;
   }
 }
-function drawDelay() {
+// open：開いたときだけ「現在」の行が見えるように路線図を送る。分数の増減・リセットでは送らない（いまの位置のまま）
+function drawDelay(open) {
   const e = dlEdit, segs = e.segs, rec = delayRec(segs[0].prefix);
   // 遅れがあるときは元の時刻を消し、遅れたあとの時刻（「着」「発」は付けない）を左下に書く。up：左上（直通駅の到着）
   const tm = (sec, ja, up) => e.min ? `<s>${hm(sec)}</s>${ja}<b class="dt${up ? " up" : ""}">${hm(sec + e.min * 60)}</b>` : hm(sec) + ja;
@@ -1267,8 +1277,11 @@ function drawDelay() {
     const s0 = g.plan[0].sec, s1 = g.plan.at(-1).sec, first = k === 0, last = k === segs.length - 1, y0 = yEnd;
     const y = sec => y0 + (sec - s0) / 60 * DL_PM;
     // 線と目盛り：路線の色で。直通駅の側は、線の先端が「…」の中心から 16px×4/6（カードの「…」の比率）。直通駅の中心には目盛りを置かない
-    const a0 = first ? y0 : y0 + 16 * DL_K, a1 = last ? y(s1) : y(s1) - 16 * DL_K;
-    rows += `<span class="rail${first ? "" : " r0"}${last ? "" : " r1"}" style="top:${a0}px;height:${a1 - a0}px;--c:${g.color}"></span>`;
+    // 始点の上・終点の下にも、1目盛り外を中心に同じ「…」を置き、線をそこまで延ばす（目盛りは延ばさない）
+    const a0 = (first ? y0 - DL_PM : y0) + 16 * DL_K, a1 = (last ? y(s1) + DL_PM : y(s1)) - 16 * DL_K;
+    if (first) rows += `<i class="dw" style="top:${y0 - DL_PM}px"></i>`;
+    if (last) rows += `<i class="dw" style="top:${y(s1) + DL_PM}px"></i>`;
+    rows += `<span class="rail r0 r1" style="top:${a0}px;height:${a1 - a0}px;--c:${g.color}"></span>`;
     for (let s = first ? s0 : s0 + 60; s <= (last ? s1 : s1 - 60); s += 60) rows += `<i class="tk" style="top:${y(s)}px;--c:${g.color}"></i>`;
     g.plan.forEach((p, m) => { if ((m > 0 || first) && (m < g.plan.length - 1 || last)) rows += row(y(p.sec), g.color, tm(p.sec, ""), p.n); });
     yEnd = y(s1);
@@ -1279,14 +1292,16 @@ function drawDelay() {
     }
   });
   rows = `<span class="sp" style="height:${yEnd + DL_PAD}px"></span>` + rows;
-  const h = segs[e.from], saved = delayMin(segs[0].prefix); // 見出しは開いた路線だけ。その下の情報は乗り入れ先と共有
-  $("#dl-body").innerHTML = `<h2 class="alt-h" style="--c:${h.color}"><span class="k">遅延情報</span><span class="st"><b class="lnf">${h.name}</b></span><span class="ln">${rec ? `${PEN_ICON}最終更新 ${hm((rec.at - e.base) / 1000)}` : "未入力"}</span></h2>
+  const h = segs[e.from], saved = delayMin(segs[0].prefix); // 見出しは開いた区間の路線名と列車ID。その下の分数と路線図は乗り入れ先と共有
+  const keep = $("#dl-body .dl-list")?.scrollTop || 0;
+  $("#dl-body").innerHTML = `<h2 class="alt-h" style="--c:${h.color}"><span class="k">運行情報</span><span class="st"><b class="lnf">${h.name}</b></span><span class="ln tn"><span>${esc(h.no || "")}</span>${rec ? `<span class="up">${PEN_ICON}最終更新 ${hm((rec.at - e.base) / 1000)}</span>` : ""}</span></h2>
     <div class="dl-step"><button type="button" data-step="-1" aria-label="1分減らす">−</button><span class="v${e.min ? "" : " zero"}">${e.min}<small>分</small></span><button type="button" data-step="1" aria-label="1分増やす">＋</button></div>
     <button type="button" class="dl-reset${e.min ? "" : " zero"}">リセット</button>
     <ul class="dl-list prop"><span class="band" hidden></span>${rows}<span class="tag" hidden></span></ul>
-    <div class="dl-note">遅延情報は更新後3時間でリセットされます。</div>
+    <div class="dl-note">運行情報は更新後3時間でリセットされます。</div>
     <div class="dl-act"><button type="button" value="cancel" class="no">やめる</button><button type="button" class="ok"${e.min === saved ? " disabled" : ""}>更新</button></div>`; // 更新する内容がなければ押せない（灰色）
-  placeTag(true);
+  placeTag(open);
+  if (!open) $("#dl-body .dl-list").scrollTop = keep;
 }
 // 「〇:〇〇 現在」の印（ラベルと薄い帯）：いまの遅れ（0分も含む）で電車がいるはずの位置。1分ごとに動く。
 // 始点の1分前より前は始点の1分前の位置、終点の1分後より後は終点の1分後の位置に出す。色はその位置の路線の色で、直通駅に停車中は黒（ダークでは白）。路線図は見るためだけのもの（押せない）
